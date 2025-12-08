@@ -2,17 +2,18 @@ package org.todaybook.gateway.security.jwt;
 
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.server.WebFilter;
-import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
 @Component
 @RequiredArgsConstructor
-public class JwtAuthenticationFilter implements WebFilter {
+public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 
   private static final String AUTHORIZATION_PREFIX = "Bearer ";
   private static final String HEADER_USER_ID = "X-User-Id";
@@ -21,7 +22,12 @@ public class JwtAuthenticationFilter implements WebFilter {
   private final JwtProvider jwtProvider;
 
   @Override
-  public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
+  public int getOrder() {
+    return Ordered.HIGHEST_PRECEDENCE;
+  }
+
+  @Override
+  public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 
     String token = extractToken(exchange);
     if (token == null) {
@@ -56,11 +62,13 @@ public class JwtAuthenticationFilter implements WebFilter {
 
   /** Claims 정보를 내부 서비스 전달용 헤더로 주입합니다. */
   private ServerWebExchange enrichExchangeWithClaims(ServerWebExchange exchange, Claims claims) {
+
     return exchange
         .mutate()
         .request(
             req ->
-                req.header(HEADER_USER_ID, claims.getSubject())
+                req.headers(headers -> headers.remove(HttpHeaders.AUTHORIZATION))
+                    .header(HEADER_USER_ID, claims.getSubject())
                     .header(HEADER_USER_NAME, String.valueOf(claims.get("nickname"))))
         .build();
   }

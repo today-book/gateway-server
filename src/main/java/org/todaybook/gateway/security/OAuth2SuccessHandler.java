@@ -9,6 +9,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.server.WebFilterExchange;
 import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.UriComponentsBuilder;
 import org.todaybook.gateway.security.jwt.JwtProvider;
 import org.todaybook.gateway.security.jwt.JwtTokenCreateCommand;
 import org.todaybook.gateway.security.kakao.KakaoOAuthUser;
@@ -37,12 +38,15 @@ public class OAuth2SuccessHandler implements ServerAuthenticationSuccessHandler 
   }
 
   private Mono<Void> redirect(WebFilterExchange exchange, String jwt) {
+
+    URI redirectUri =
+        UriComponentsBuilder.fromUriString(authProperties.getLoginSuccessRedirectUri())
+            .queryParam("token", jwt)
+            .build()
+            .toUri();
+
     exchange.getExchange().getResponse().setStatusCode(HttpStatus.FOUND);
-    exchange
-        .getExchange()
-        .getResponse()
-        .getHeaders()
-        .setLocation(URI.create(authProperties.getLoginSuccessRedirectUri() + jwt));
+    exchange.getExchange().getResponse().getHeaders().setLocation(redirectUri);
     return exchange.getExchange().getResponse().setComplete();
   }
 }

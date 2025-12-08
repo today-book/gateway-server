@@ -29,8 +29,7 @@ jwt:
 
 app:
   auth:
-    login-success-redirect-uri: >
-      https://today-book.github.io/today-book-front/login/success?token=
+    login-success-redirect-uri: https://today-book.github.io/today-book-front/login/success
 
 cors:
   allowed-origins:

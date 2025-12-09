@@ -32,6 +32,7 @@ public class JwtProvider {
     return Jwts.builder()
         .subject(command.kakaoId())
         .claim("nickname", command.nickname())
+        .claim("roles", command.roles())
         .issuedAt(new Date())
         .expiration(new Date(System.currentTimeMillis() + jwtProperties.getExpiration()))
         .signWith(Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes()), SIG.HS256)

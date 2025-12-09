@@ -3,6 +3,7 @@ package org.todaybook.gateway.security.jwt;
 import io.jsonwebtoken.Claims;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -11,6 +12,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
+import org.todaybook.gateway.security.PublicApiMatcher;
 import reactor.core.publisher.Mono;
 
 /**
@@ -25,6 +27,10 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 
+  private static final String HEADER_GATEWAY_TRUSTED = "X-Gateway-Trusted";
+
+  private static final String HEADER_CLIENT_TYPE = "X-Client-Type";
+
   /** Authorization 헤더의 Bearer 접두사. */
   private static final String AUTHORIZATION_PREFIX = "Bearer ";
 
@@ -38,6 +44,7 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
   private static final String HEADER_USER_ROLES = "X-User-Roles";
 
   private final JwtProvider jwtProvider;
+  private final PublicApiMatcher publicApiMatcher;
 
   /**
    * 필터 실행 순서를 최상위로 지정합니다.
@@ -58,9 +65,13 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
    */
   @Override
   public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+    boolean isPublicApi = publicApiMatcher.isPublic(exchange.getRequest());
 
     String token = extractToken(exchange);
     if (token == null) {
+      if (isPublicApi) {
+        return chain.filter(setPublicHeaders(exchange));
+      }
       return chain.filter(exchange);
     }
 
@@ -72,6 +83,15 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
     ServerWebExchange enrichedExchange = enrichExchangeWithClaims(exchange, claims);
 
     return chain.filter(enrichedExchange);
+  }
+
+  private ServerWebExchange setPublicHeaders(ServerWebExchange exchange) {
+    return exchange
+        .mutate()
+        .request(
+            builder ->
+                builder.header(HEADER_GATEWAY_TRUSTED, "true").header(HEADER_CLIENT_TYPE, "PUBLIC"))
+        .build();
   }
 
   /**
@@ -115,9 +135,11 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         .request(
             req ->
                 req.headers(headers -> headers.remove(HttpHeaders.AUTHORIZATION))
+                    .header(HEADER_GATEWAY_TRUSTED, "true")
+                    .header(HEADER_CLIENT_TYPE, "USER")
                     .header(HEADER_USER_ID, claims.getSubject())
                     .header(HEADER_USER_NICKNAME, encodeHeaderValue(extractUserNickname(claims)))
-                    .header(HEADER_USER_ROLES, extractUserRoles()))
+                    .header(HEADER_USER_ROLES, String.join(",", extractUserRoles(claims))))
         .build();
   }
 
@@ -135,12 +157,20 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
   /**
    * 사용자 권한 정보를 추출합니다.
    *
-   * <p>현재는 고정 값이며, 추후 Claims 기반으로 확장될 수 있습니다.
-   *
-   * @return 사용자 권한 문자열
+   * @return 사용자 권한 문자열 리스트
    */
-  private String extractUserRoles() {
-    return "ROLE_USER";
+  private List<String> extractUserRoles(Claims claims) {
+    Object roles = claims.get("roles");
+
+    if (roles == null) {
+      return List.of();
+    }
+
+    if (roles instanceof List<?> list) {
+      return list.stream().map(String::valueOf).toList();
+    }
+
+    return List.of();
   }
 
   /**

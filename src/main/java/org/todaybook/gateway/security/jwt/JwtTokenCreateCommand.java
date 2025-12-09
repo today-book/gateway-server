@@ -1,3 +1,5 @@
 package org.todaybook.gateway.security.jwt;
 
-public record JwtTokenCreateCommand(String kakaoId, String nickname) {}
+import java.util.List;
+
+public record JwtTokenCreateCommand(String kakaoId, String nickname, List<String> roles) {}

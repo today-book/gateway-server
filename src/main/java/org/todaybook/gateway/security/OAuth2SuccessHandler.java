@@ -1,6 +1,7 @@
 package org.todaybook.gateway.security;
 
 import java.net.URI;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.http.HttpStatus;
@@ -32,7 +33,8 @@ public class OAuth2SuccessHandler implements ServerAuthenticationSuccessHandler 
     KakaoOAuthUser user = KakaoOAuthUser.from(oAuth2User);
 
     String jwt =
-        jwtProvider.createToken(new JwtTokenCreateCommand(user.kakaoId(), user.nickname()));
+        jwtProvider.createToken(
+            new JwtTokenCreateCommand(user.kakaoId(), user.nickname(), List.of("USER_ROLE")));
 
     return redirect(exchange, jwt);
   }

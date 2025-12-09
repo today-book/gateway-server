@@ -3,6 +3,15 @@ spring:
     name: gateway
   config:
     import: optional:file:.env[.properties]
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: search-service
+              uri: http://localhost:8081
+              predicates:
+                - Path=/api/v1/search/**
   security:
     oauth2:
       client:
@@ -35,3 +44,4 @@ cors:
   allowed-origins:
     - https://today-book.github.io
     - http://localhost:3000
+    - http://localhost:63342

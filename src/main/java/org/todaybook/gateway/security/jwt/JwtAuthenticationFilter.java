@@ -95,7 +95,7 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
       if (isPublicApi) {
         return chain.filter(setPublicHeaders(exchange));
       }
-      return chain.filter(exchange);
+      return unauthorized(exchange);
     }
 
     if (!jwtProvider.validate(token)) {

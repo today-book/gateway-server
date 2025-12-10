@@ -1,4 +1,4 @@
-package org.todaybook.gateway.security;
+package org.todaybook.gateway.security.publicapi;
 
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;

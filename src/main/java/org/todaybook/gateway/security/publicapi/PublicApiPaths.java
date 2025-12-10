@@ -1,4 +1,4 @@
-package org.todaybook.gateway.security;
+package org.todaybook.gateway.security.publicapi;
 
 import java.util.List;
 

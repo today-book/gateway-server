@@ -1,4 +1,4 @@
-package org.todaybook.gateway.security;
+package org.todaybook.gateway.security.oauth;
 
 import java.net.URI;
 import java.util.List;

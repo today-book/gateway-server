@@ -1,4 +1,4 @@
-package org.todaybook.gateway.security;
+package org.todaybook.gateway.security.oauth;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

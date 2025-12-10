@@ -1,4 +1,4 @@
-package org.todaybook.gateway.security;
+package org.todaybook.gateway.security.config;
 
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +11,8 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.util.matcher.OrServerWebExchangeMatcher;
 import org.springframework.security.web.server.util.matcher.PathPatternParserServerWebExchangeMatcher;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher;
+import org.todaybook.gateway.security.oauth.OAuth2SuccessHandler;
+import org.todaybook.gateway.security.publicapi.PublicApiPaths;
 
 @Configuration
 @EnableWebFluxSecurity

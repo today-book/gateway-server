@@ -1,12 +1,10 @@
 package org.todaybook.gateway.security.cors;
 
 import java.util.List;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@Getter
-@Setter
+@Data
 @ConfigurationProperties(prefix = "cors")
 public class CorsProperties {
 

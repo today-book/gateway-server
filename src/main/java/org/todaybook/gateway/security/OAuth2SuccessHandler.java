@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.todaybook.gateway.security.jwt.JwtProvider;
 import org.todaybook.gateway.security.jwt.JwtTokenCreateCommand;
-import org.todaybook.gateway.security.kakao.KakaoOAuthUser;
+import org.todaybook.gateway.security.kakao.KakaoOAuth2User;
 import reactor.core.publisher.Mono;
 
 @Component
@@ -30,7 +30,7 @@ public class OAuth2SuccessHandler implements ServerAuthenticationSuccessHandler 
       WebFilterExchange exchange, Authentication authentication) {
     OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
 
-    KakaoOAuthUser user = KakaoOAuthUser.from(oAuth2User);
+    KakaoOAuth2User user = KakaoOAuth2User.from(oAuth2User);
 
     String jwt =
         jwtProvider.createToken(

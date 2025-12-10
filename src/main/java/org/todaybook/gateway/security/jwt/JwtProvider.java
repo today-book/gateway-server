@@ -35,7 +35,7 @@ public class JwtProvider {
         .claim("roles", command.roles())
         .issuedAt(new Date())
         .expiration(new Date(System.currentTimeMillis() + jwtProperties.getExpiration()))
-        .signWith(Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes()), SIG.HS256)
+        .signWith(secretKey, SIG.HS256)
         .compact();
   }
 

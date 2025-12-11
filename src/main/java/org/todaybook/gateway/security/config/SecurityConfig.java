@@ -4,6 +4,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
@@ -22,6 +23,7 @@ public class SecurityConfig {
   private final OAuth2SuccessHandler successHandler;
 
   @Bean
+  @Order(1)
   public SecurityWebFilterChain publicApiChain(ServerHttpSecurity http) {
     ServerWebExchangeMatcher publicMatcher =
         new OrServerWebExchangeMatcher(
@@ -37,8 +39,8 @@ public class SecurityConfig {
   }
 
   @Bean
+  @Order(2)
   public SecurityWebFilterChain securedChain(ServerHttpSecurity http) {
-
     return http.csrf(ServerHttpSecurity.CsrfSpec::disable)
         .cors(Customizer.withDefaults())
         .authorizeExchange(

@@ -9,14 +9,14 @@ env:
   VERSION: latest
 
 jobs:
-  Deploy:
+  deploy:
+    environment: dev
     name: Build Docker Image and Deploy EC2
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
       security-events: write
-    environment: deploy
 
     steps:
       - name: Checkout source code

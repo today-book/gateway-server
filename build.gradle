@@ -56,6 +56,9 @@ dependencies {
     // common-core
     implementation 'org.todaybook:common-core:1.1.1'
 
+    // data-redis-reactive
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis-reactive'
+
     testImplementation 'io.projectreactor:reactor-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'

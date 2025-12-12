@@ -98,9 +98,7 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
       return unauthorized(exchange);
     }
 
-    if (!jwtProvider.validate(token)) {
-      return unauthorized(exchange);
-    }
+    jwtProvider.validateOrThrow(token);
 
     Claims claims = jwtProvider.getClaims(token);
     ServerWebExchange enrichedExchange = enrichExchangeWithClaims(exchange, claims);

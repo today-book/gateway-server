@@ -1,17 +1,20 @@
 package org.todaybook.gateway.security.oauth;
 
-import java.net.URI;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.server.WebFilterExchange;
 import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
-import org.springframework.web.util.UriComponentsBuilder;
+import org.todaybook.gateway.security.exception.TokenSerializationException;
 import org.todaybook.gateway.security.jwt.JwtProvider;
+import org.todaybook.gateway.security.jwt.JwtToken;
 import org.todaybook.gateway.security.jwt.JwtTokenCreateCommand;
 import org.todaybook.gateway.security.kakao.KakaoOAuth2User;
 import reactor.core.publisher.Mono;
@@ -21,9 +24,9 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class OAuth2SuccessHandler implements ServerAuthenticationSuccessHandler {
 
-  private final AuthProperties authProperties;
-
   private final JwtProvider jwtProvider;
+
+  private final ObjectMapper objectMapper;
 
   @Override
   public Mono<Void> onAuthenticationSuccess(
@@ -32,23 +35,21 @@ public class OAuth2SuccessHandler implements ServerAuthenticationSuccessHandler 
 
     KakaoOAuth2User user = KakaoOAuth2User.from(oAuth2User);
 
-    String jwt =
-        jwtProvider.createToken(
-            new JwtTokenCreateCommand(user.kakaoId(), user.nickname(), List.of("USER_ROLE")));
+    JwtTokenCreateCommand command =
+        new JwtTokenCreateCommand(user.kakaoId(), user.nickname(), List.of("USER_ROLE"));
 
-    return redirect(exchange, jwt);
+    return jwtProvider.createToken(command).flatMap(jwt -> writeTokenResponse(exchange, jwt));
   }
 
-  private Mono<Void> redirect(WebFilterExchange exchange, String jwt) {
+  private Mono<Void> writeTokenResponse(WebFilterExchange exchange, JwtToken jwt) {
+    var response = exchange.getExchange().getResponse();
+    response.setStatusCode(HttpStatus.OK);
+    response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
 
-    URI redirectUri =
-        UriComponentsBuilder.fromUriString(authProperties.getLoginSuccessRedirectUri())
-            .queryParam("token", jwt)
-            .build()
-            .toUri();
-
-    exchange.getExchange().getResponse().setStatusCode(HttpStatus.FOUND);
-    exchange.getExchange().getResponse().getHeaders().setLocation(redirectUri);
-    return exchange.getExchange().getResponse().setComplete();
+    return Mono.fromCallable(() -> objectMapper.writeValueAsBytes(jwt))
+        .flatMap(bytes -> response.writeWith(Mono.just(response.bufferFactory().wrap(bytes))))
+        .onErrorMap(
+            JsonProcessingException.class,
+            e -> new TokenSerializationException("JSON_SERIALIZATION_ERROR", e));
   }
 }

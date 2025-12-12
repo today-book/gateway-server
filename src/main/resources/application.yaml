@@ -39,7 +39,8 @@ spring:
 
 jwt:
   secret: ${JWT_SECRET}
-  expiration: ${JWT_EXPIRATION}
+  access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION}
+  refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION}
 
 ---
 spring:
@@ -70,9 +71,6 @@ spring:
         registration:
           kakao:
             redirect-uri: "https://dev-api.todaybook.life/login/oauth2/code/kakao"
-app:
-  auth:
-    login-success-redirect-uri: https://today-book.github.io/today-book-front/login/success
 
 cors:
   allowed-origins:

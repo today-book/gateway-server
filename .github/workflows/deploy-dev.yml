@@ -74,6 +74,9 @@ jobs:
             -e KAKAO_CLIENT_SECRET=${{ secrets.KAKAO_CLIENT_SECRET }} \
             -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
             -e JWT_EXPIRATION=${{ secrets.JWT_EXPIRATION }} \
+            -e REDIS_HOST=redis \
+            -e REDIS_PASSWORD=${{ secrets.DEV_REDIS_PASSWORD }} \
+            --network internal-net \
             ${{ env.IMAGE_URI }}
             
             echo "--- 배포 완료 ---"

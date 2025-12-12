@@ -1,7 +1,12 @@
 server:
   port: 9000
-
 spring:
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: 6379
+      password: ${REDIS_PASSWORD}
+      timeout: 2s
   application:
     name: gateway
   cloud:
@@ -13,6 +18,13 @@ spring:
               uri: ${SEARCH_SERVICE_URL}
               predicates:
                 - Path=/api/v1/search/**
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    redis-rate-limiter.replenishRate: 20
+                    redis-rate-limiter.burstCapacity: 40
+                    redis-rate-limiter.requestedTokens: 1
+                    key-resolver: "#{@searchKeyResolver}"
             - id: book-service
               uri: ${BOOK_SERVICE_URL}
               predicates:

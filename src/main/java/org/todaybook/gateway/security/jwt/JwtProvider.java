@@ -22,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.stereotype.Component;
+import org.todaybook.gateway.Infrastructure.redis.RefreshTokenStore;
 import org.todaybook.gateway.security.exception.TokenValidationException;
 import reactor.core.publisher.Mono;
 
@@ -33,13 +34,14 @@ public class JwtProvider {
 
   private final JwtProperties jwtProperties;
   private SecretKey secretKey;
+  private final RefreshTokenStore refreshTokenStore;
 
   @PostConstruct
   void init() {
     this.secretKey = Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8));
   }
 
-  public JwtToken createToken(JwtTokenCreateCommand command) {
+  public Mono<JwtToken> createToken(JwtTokenCreateCommand command) {
     String accessToken = createAccessToken(command);
     String refreshToken = createRefreshToken(command.kakaoId());
 

@@ -2,7 +2,7 @@ package org.todaybook.gateway.auth.application;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.todaybook.gateway.auth.domain.JwtToken;
+import org.todaybook.gateway.auth.application.dto.IssuedToken;
 import org.todaybook.gateway.auth.infrastructure.redis.AuthCodeStore;
 import org.todaybook.gateway.auth.infrastructure.redis.RefreshTokenStore;
 import reactor.core.publisher.Mono;
@@ -27,9 +27,9 @@ public class AuthService {
    * authCode를 이용해 로그인하고 JWT 토큰을 발급합니다.
    *
    * @param authCode OAuth 로그인 이후 발급된 일회성 인증 코드
-   * @return 발급된 JwtToken
+   * @return 발급된 IssuedToken
    */
-  public Mono<JwtToken> loginWithAuthCode(String authCode) {
+  public Mono<IssuedToken> loginWithAuthCode(String authCode) {
     return authenticateAndConsumeAuthCode(authCode)
         .flatMap(authTokenService::issue);
   }
@@ -41,9 +41,9 @@ public class AuthService {
    * 유효하지 않은 경우 인증 오류를 반환합니다.
    *
    * @param refreshToken 클라이언트가 보유한 refreshToken(UUID)
-   * @return 새로 발급된 JwtToken
+   * @return 새로 발급된 IssuedToken
    */
-  public Mono<JwtToken> refresh(String refreshToken) {
+  public Mono<IssuedToken> refresh(String refreshToken) {
     String newRefreshToken = authTokenService.createRefreshToken();
 
     return refreshTokenStore

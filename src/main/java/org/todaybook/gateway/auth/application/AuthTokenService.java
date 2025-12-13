@@ -4,7 +4,7 @@ import java.time.Duration;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.todaybook.gateway.auth.domain.JwtToken;
+import org.todaybook.gateway.auth.application.dto.IssuedToken;
 import org.todaybook.gateway.auth.infrastructure.jwt.JwtProperties;
 import org.todaybook.gateway.auth.infrastructure.jwt.JwtProvider;
 import org.todaybook.gateway.auth.infrastructure.jwt.JwtTokenCreateCommand;
@@ -44,9 +44,9 @@ public class AuthTokenService {
    * Redis에 사용자 식별자와 함께 저장됩니다.
    *
    * @param userId 인증이 완료된 사용자 식별자
-   * @return 발급된 JwtToken
+   * @return 발급된 IssuedToken
    */
-  public Mono<JwtToken> issue(String userId) {
+  public Mono<IssuedToken> issue(String userId) {
     JwtTokenCreateCommand command =
         new JwtTokenCreateCommand(userId, "USER", List.of("USER_ROLE"));
 
@@ -62,7 +62,7 @@ public class AuthTokenService {
             saved ->
                 saved
                     ? Mono.just(
-                    new JwtToken(
+                    new IssuedToken(
                         accessToken,
                         refreshToken,
                         "Bearer",
@@ -79,14 +79,14 @@ public class AuthTokenService {
    *
    * @param userId Refresh Token을 통해 검증된 사용자 식별자
    * @param refreshToken 새로 발급된 Refresh Token
-   * @return 새로 구성된 JwtToken
+   * @return 새로 구성된 IssuedToken
    */
-  public JwtToken issueWithRefresh(String userId, String refreshToken) {
+  public IssuedToken issueWithRefresh(String userId, String refreshToken) {
     String accessToken =
         createAccessToken(
             new JwtTokenCreateCommand(userId, "USER", List.of("USER_ROLE")));
 
-    return new JwtToken(
+    return new IssuedToken(
         accessToken,
         refreshToken,
         "Bearer",

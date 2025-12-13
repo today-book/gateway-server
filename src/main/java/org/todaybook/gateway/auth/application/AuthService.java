@@ -3,7 +3,6 @@ package org.todaybook.gateway.auth.application;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.todaybook.gateway.auth.Infrastructure.jwt.JwtProvider;
 import org.todaybook.gateway.auth.Infrastructure.jwt.JwtTokenCreateCommand;
 import org.todaybook.gateway.auth.Infrastructure.redis.AuthCodeStore;
 import org.todaybook.gateway.auth.Infrastructure.redis.RefreshTokenStore;
@@ -24,7 +23,7 @@ public class AuthService {
 
   private final RefreshTokenStore refreshTokenStore;
   private final AuthCodeStore authCodeStore;
-  private final JwtProvider jwtProvider;
+  private final AuthTokenService authTokenService;
 
   /**
    * authCode를 이용해 로그인하고 JWT 토큰을 발급합니다.
@@ -77,7 +76,7 @@ public class AuthService {
    * <p>추후 실제 사용자 조회 로직이 추가되면 Claim 생성 책임을 이 메서드에서 확장할 수 있습니다.
    */
   private Mono<JwtToken> createUserToken(String userId) {
-    return jwtProvider.createToken(new JwtTokenCreateCommand(userId, "USER", List.of("USER_ROLE")));
+    return authTokenService.issue(new JwtTokenCreateCommand(userId, "USER", List.of("USER_ROLE")));
   }
 
   /** Mono 결과가 비어 있을 경우 UnauthorizedException을 발생시킵니다. */

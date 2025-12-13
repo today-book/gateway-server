@@ -11,9 +11,7 @@ public class RefreshTokenRotationScript {
 
   public RefreshTokenRotationScript() {
     this.script =
-        RedisScript.of(
-            new ClassPathResource("redis/refresh_token_rotate.lua"),
-            String.class);
+        RedisScript.of(new ClassPathResource("redis/refresh_token_rotate.lua"), String.class);
   }
 
   public RedisScript<String> get() {

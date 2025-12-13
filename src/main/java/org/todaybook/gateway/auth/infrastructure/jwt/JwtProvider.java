@@ -17,11 +17,9 @@ import org.springframework.stereotype.Component;
 /**
  * JWT 생성 및 파싱을 담당하는 Provider 클래스입니다.
  *
- * <p>이 클래스는 Access Token(JWT)의 생성 및 파싱 책임만을 가지며,
- * Refresh Token은 서버 상태 기반(UUID) 토큰으로 생성합니다.
+ * <p>이 클래스는 Access Token(JWT)의 생성 및 파싱 책임만을 가지며, Refresh Token은 서버 상태 기반(UUID) 토큰으로 생성합니다.
  *
- * <p>저장소(Redis, DB)에 대한 의존성은 없으며,
- * 순수하게 토큰 생성/검증 로직만을 캡슐화합니다.
+ * <p>저장소(Redis, DB)에 대한 의존성은 없으며, 순수하게 토큰 생성/검증 로직만을 캡슐화합니다.
  *
  * @author 김지원
  * @since 1.0.0.
@@ -44,15 +42,13 @@ public class JwtProvider {
    */
   @PostConstruct
   void init() {
-    this.secretKey =
-        Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8));
+    this.secretKey = Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8));
   }
 
   /**
    * Access Token(JWT)을 생성합니다.
    *
-   * <p>사용자 식별자와 권한 정보를 Claim으로 포함하며,
-   * 설정된 만료 시간을 기준으로 토큰을 발급합니다.
+   * <p>사용자 식별자와 권한 정보를 Claim으로 포함하며, 설정된 만료 시간을 기준으로 토큰을 발급합니다.
    *
    * @param command Access Token 생성에 필요한 사용자 정보 및 Claim 데이터
    * @return 서명된 Access Token 문자열
@@ -67,7 +63,7 @@ public class JwtProvider {
             new Date(
                 System.currentTimeMillis()
                     + Duration.ofSeconds(jwtProperties.getAccessTokenExpirationSeconds())
-                    .toMillis()))
+                        .toMillis()))
         .signWith(secretKey, SIG.HS256)
         .compact();
   }
@@ -75,8 +71,7 @@ public class JwtProvider {
   /**
    * Refresh Token을 생성합니다.
    *
-   * <p>Refresh Token은 서버 상태(Redis)에 저장되는 UUID 기반 토큰으로,
-   * 별도의 Claim이나 서명 정보를 포함하지 않습니다.
+   * <p>Refresh Token은 서버 상태(Redis)에 저장되는 UUID 기반 토큰으로, 별도의 Claim이나 서명 정보를 포함하지 않습니다.
    *
    * @return 새로 생성된 Refresh Token(UUID 문자열)
    */
@@ -93,10 +88,6 @@ public class JwtProvider {
    * @return JWT에 포함된 Claims 객체
    */
   public Claims parse(String token) {
-    return Jwts.parser()
-        .verifyWith(secretKey)
-        .build()
-        .parseSignedClaims(token)
-        .getPayload();
+    return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
   }
 }

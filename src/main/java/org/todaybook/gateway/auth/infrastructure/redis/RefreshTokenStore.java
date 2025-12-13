@@ -22,18 +22,13 @@ public class RefreshTokenStore {
     return reactiveRedisTemplate.delete(key(refreshToken));
   }
 
-  public Mono<String> rotate(
-      String oldRefreshToken, String newRefreshToken, Duration ttl) {
+  public Mono<String> rotate(String oldRefreshToken, String newRefreshToken, Duration ttl) {
 
     String oldKey = key(oldRefreshToken);
     String newKey = key(newRefreshToken);
 
     return reactiveRedisTemplate
-        .execute(
-            rotationScript.get(),
-            List.of(oldKey, newKey),
-            String.valueOf(ttl.getSeconds())
-        )
+        .execute(rotationScript.get(), List.of(oldKey, newKey), String.valueOf(ttl.getSeconds()))
         .next(); // Lua 결과는 Flux로 오므로 단건 추출
   }
 

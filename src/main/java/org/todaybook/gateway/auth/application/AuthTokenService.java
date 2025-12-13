@@ -14,12 +14,10 @@ import reactor.core.publisher.Mono;
 /**
  * 인증 토큰 발급 및 저장 정책을 담당하는 서비스입니다.
  *
- * <p>이 서비스는 인증이 완료된 사용자에 대해
- * Access Token(JWT)과 Refresh Token(UUID)을 생성하고,
- * Refresh Token을 Redis에 저장하는 책임을 가집니다.
+ * <p>이 서비스는 인증이 완료된 사용자에 대해 Access Token(JWT)과 Refresh Token(UUID)을 생성하고, Refresh Token을 Redis에
+ * 저장하는 책임을 가집니다.
  *
- * <p>AuthService는 이 클래스의 내부 구현을 알 필요 없이
- * 토큰 발급 결과(JwtToken)만을 사용합니다.
+ * <p>AuthService는 이 클래스의 내부 구현을 알 필요 없이 토큰 발급 결과(JwtToken)만을 사용합니다.
  *
  * @author 김지원
  * @since 1.0.0.
@@ -40,15 +38,13 @@ public class AuthTokenService {
   /**
    * 신규 로그인 시 Access Token과 Refresh Token을 발급합니다.
    *
-   * <p>Refresh Token은 UUID 기반으로 생성되며,
-   * Redis에 사용자 식별자와 함께 저장됩니다.
+   * <p>Refresh Token은 UUID 기반으로 생성되며, Redis에 사용자 식별자와 함께 저장됩니다.
    *
    * @param userId 인증이 완료된 사용자 식별자
    * @return 발급된 IssuedToken
    */
   public Mono<IssuedToken> issue(String userId) {
-    JwtTokenCreateCommand command =
-        new JwtTokenCreateCommand(userId, "USER", List.of("USER_ROLE"));
+    JwtTokenCreateCommand command = new JwtTokenCreateCommand(userId, "USER", List.of("USER_ROLE"));
 
     String accessToken = createAccessToken(command);
     String refreshToken = createRefreshToken();
@@ -62,20 +58,18 @@ public class AuthTokenService {
             saved ->
                 saved
                     ? Mono.just(
-                    new IssuedToken(
-                        accessToken,
-                        refreshToken,
-                        "Bearer",
-                        jwtProperties.getAccessTokenExpirationSeconds()))
-                    : Mono.error(
-                        new IllegalStateException("Failed to persist refresh token")));
+                        new IssuedToken(
+                            accessToken,
+                            refreshToken,
+                            "Bearer",
+                            jwtProperties.getAccessTokenExpirationSeconds()))
+                    : Mono.error(new IllegalStateException("Failed to persist refresh token")));
   }
 
   /**
    * Refresh Token 재발급 시 Access Token만 새로 발급합니다.
    *
-   * <p>Refresh Token은 이미 회전(rotation)되어 저장된 상태이므로,
-   * 이 메서드는 Access Token 생성 책임만 가집니다.
+   * <p>Refresh Token은 이미 회전(rotation)되어 저장된 상태이므로, 이 메서드는 Access Token 생성 책임만 가집니다.
    *
    * @param userId Refresh Token을 통해 검증된 사용자 식별자
    * @param refreshToken 새로 발급된 Refresh Token
@@ -83,14 +77,9 @@ public class AuthTokenService {
    */
   public IssuedToken issueWithRefresh(String userId, String refreshToken) {
     String accessToken =
-        createAccessToken(
-            new JwtTokenCreateCommand(userId, "USER", List.of("USER_ROLE")));
+        createAccessToken(new JwtTokenCreateCommand(userId, "USER", List.of("USER_ROLE")));
 
-    return new IssuedToken(
-        accessToken,
-        refreshToken,
-        "Bearer",
-        accessTokenExpireSeconds());
+    return new IssuedToken(accessToken, refreshToken, "Bearer", accessTokenExpireSeconds());
   }
 
   /**
@@ -106,8 +95,7 @@ public class AuthTokenService {
   /**
    * Refresh Token(UUID)을 생성합니다.
    *
-   * <p>Refresh Token은 서버 상태(Redis)에 저장되며,
-   * 자체적으로 의미를 가지지 않는 랜덤 값입니다.
+   * <p>Refresh Token은 서버 상태(Redis)에 저장되며, 자체적으로 의미를 가지지 않는 랜덤 값입니다.
    *
    * @return 새로 생성된 Refresh Token
    */

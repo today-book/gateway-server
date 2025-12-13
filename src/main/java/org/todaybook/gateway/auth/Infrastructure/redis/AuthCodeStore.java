@@ -12,8 +12,8 @@ public class AuthCodeStore {
 
   private final ReactiveRedisTemplate<String, String> reactiveRedisTemplate;
 
-  public Mono<Boolean> save(String authCode, String kakaoId) {
-    return reactiveRedisTemplate.opsForValue().set(key(authCode), kakaoId, Duration.ofSeconds(60));
+  public Mono<Boolean> save(String authCode, String kakaoId, Duration ttl) {
+    return reactiveRedisTemplate.opsForValue().set(key(authCode), kakaoId, ttl);
   }
 
   public Mono<String> getKakaoId(String authCode) {

@@ -1,18 +1,8 @@
 package org.todaybook.gateway.security.jwt;
 
-import static org.todaybook.gateway.security.exception.TokenValidationErrorCode.EMPTY_TOKEN;
-import static org.todaybook.gateway.security.exception.TokenValidationErrorCode.EXPIRED_TOKEN;
-import static org.todaybook.gateway.security.exception.TokenValidationErrorCode.INVALID_TOKEN_FORMAT;
-import static org.todaybook.gateway.security.exception.TokenValidationErrorCode.INVALID_TOKEN_SIGNATURE;
-
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.Jwts.SIG;
-import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
-import io.jsonwebtoken.security.SignatureException;
 import jakarta.annotation.PostConstruct;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -23,7 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.stereotype.Component;
 import org.todaybook.gateway.Infrastructure.redis.RefreshTokenStore;
-import org.todaybook.gateway.security.exception.TokenValidationException;
 import reactor.core.publisher.Mono;
 
 @Slf4j
@@ -84,27 +73,5 @@ public class JwtProvider {
                         .toMillis()))
         .signWith(secretKey, SIG.HS256)
         .compact();
-  }
-
-  public void validateOrThrow(String token) {
-    try {
-      Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token);
-
-    } catch (ExpiredJwtException e) {
-      throw new TokenValidationException(EXPIRED_TOKEN);
-
-    } catch (SignatureException e) {
-      throw new TokenValidationException(INVALID_TOKEN_SIGNATURE);
-
-    } catch (MalformedJwtException | UnsupportedJwtException e) {
-      throw new TokenValidationException(INVALID_TOKEN_FORMAT);
-
-    } catch (IllegalArgumentException e) {
-      throw new TokenValidationException(EMPTY_TOKEN);
-    }
-  }
-
-  public Claims getClaims(String token) {
-    return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
   }
 }

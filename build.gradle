@@ -23,14 +23,6 @@ configurations {
 
 repositories {
     mavenCentral()
-    maven {
-        name = "GitHubPublicPackages"
-        url = uri("https://maven.pkg.github.com/today-book/common")
-        credentials {
-            username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
-            password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
-        }
-    }
 }
 
 ext {
@@ -52,9 +44,6 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok'
     testCompileOnly 'org.projectlombok:lombok'
     testAnnotationProcessor 'org.projectlombok:lombok'
-
-    // common-core
-    implementation 'org.todaybook:common-core:1.1.1'
 
     // data-redis-reactive
     implementation 'org.springframework.boot:spring-boot-starter-data-redis-reactive'

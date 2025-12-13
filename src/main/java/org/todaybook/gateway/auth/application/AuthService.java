@@ -46,7 +46,7 @@ public class AuthService {
 
     return refreshTokenStore
         .rotate(refreshToken, newRefreshToken, authTokenService.refreshTokenTtl())
-        .switchIfEmpty(Mono.error(new UnauthorizedException("INVALID_REFRESH_TOKEN")))
+        .switchIfEmpty(Mono.error(new UnauthorizedException()))
         .map(userId -> authTokenService.issueWithRefresh(userId, newRefreshToken));
   }
 
@@ -70,6 +70,6 @@ public class AuthService {
   private Mono<String> authenticateAndConsumeAuthCode(String authCode) {
     return authCodeStore
         .getAndDeleteKakaoId(authCode)
-        .switchIfEmpty(Mono.error(new UnauthorizedException("INVALID_AUTH_CODE")));
+        .switchIfEmpty(Mono.error(new UnauthorizedException()));
   }
 }

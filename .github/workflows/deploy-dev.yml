@@ -30,9 +30,6 @@ jobs:
           cache: gradle
 
       - name: Build with Gradle
-        env:
-          GITHUB_ACTOR: ${{ github.actor }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           chmod +x gradlew
           ./gradlew build -x test

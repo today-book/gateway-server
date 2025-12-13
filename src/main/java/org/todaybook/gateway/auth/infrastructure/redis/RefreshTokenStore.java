@@ -32,7 +32,7 @@ public class RefreshTokenStore {
         .execute(
             rotationScript.get(),
             List.of(oldKey, newKey),
-            ttl.getSeconds()
+            String.valueOf(ttl.getSeconds())
         )
         .next(); // Lua 결과는 Flux로 오므로 단건 추출
   }

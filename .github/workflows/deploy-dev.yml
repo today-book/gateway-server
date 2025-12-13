@@ -70,8 +70,6 @@ jobs:
             -e SPRING_PROFILES_ACTIVE=dev \
             -e SEARCH_SERVICE_URL=${{ secrets.DEV_SEARCH_SERVICE_URL }} \
             -e BOOK_SERVICE_URL=${{ secrets.DEV_BOOK_SERVICE_URL }} \
-            -e REDIS_HOST=redis \
-            -e REDIS_PASSWORD=${{ secrets.DEV_REDIS_PASSWORD }} \
             -e KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }} \
             -e KAKAO_CLIENT_SECRET=${{ secrets.KAKAO_CLIENT_SECRET }} \
             -e JWT_SECRET=${{ secrets.JWT_SECRET }} \

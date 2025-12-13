@@ -8,6 +8,7 @@ import javax.crypto.spec.SecretKeySpec;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.stereotype.Component;
+import org.todaybook.gateway.auth.application.spi.refresh.RefreshTokenEncoder;
 
 /**
  * Refresh Token을 HMAC-SHA256 알고리즘으로 해싱하는 Encoder 구현체입니다.

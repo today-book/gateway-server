@@ -4,11 +4,12 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.todaybook.gateway.auth.application.dto.IssuedToken;
-import org.todaybook.gateway.auth.infrastructure.jwt.AcessTokenIssueCommand;
-import org.todaybook.gateway.auth.infrastructure.jwt.IssuedAccessToken;
+import org.todaybook.gateway.auth.application.refresh.IssuedRefreshToken;
+import org.todaybook.gateway.auth.application.refresh.RefreshTokenManager;
+import org.todaybook.gateway.auth.application.spi.token.AccessTokenIssuer;
+import org.todaybook.gateway.auth.application.token.AccessTokenIssueCommand;
+import org.todaybook.gateway.auth.application.token.IssuedAccessToken;
 import org.todaybook.gateway.auth.infrastructure.jwt.JwtAccessTokenManager;
-import org.todaybook.gateway.auth.infrastructure.refresh.IssuedRefreshToken;
-import org.todaybook.gateway.auth.infrastructure.refresh.RefreshTokenManager;
 import reactor.core.publisher.Mono;
 
 /**
@@ -33,8 +34,8 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class AuthTokenService {
 
-  /** Access Token(JWT) 발급/검증 로직을 캡슐화한 Manager */
-  private final JwtAccessTokenManager jwtAccessTokenManager;
+  /** Access Token(JWT) 발급 로직을 캡슐화한 SPI */
+  private final AccessTokenIssuer accessTokenIssuer;
 
   /** Refresh Token 발급/회전/폐기 및 저장 정책을 캡슐화한 Manager */
   private final RefreshTokenManager refreshTokenManager;
@@ -57,11 +58,11 @@ public class AuthTokenService {
    */
   public Mono<IssuedToken> issue(String userId) {
     // TODO: 실제 운영에서는 role/nickname 등 Claim 구성은 사용자 서비스 조회 또는 정책에 맞게 구성
-    AcessTokenIssueCommand command =
-        new AcessTokenIssueCommand(userId, "USER", List.of("USER_ROLE"));
+    AccessTokenIssueCommand command =
+        new AccessTokenIssueCommand(userId, "USER", List.of("USER_ROLE"));
 
     // Access Token 발급(동기) - 필요 시 Mono.fromSupplier로 감싸 예외/스케줄링을 일관되게 처리할 수 있습니다.
-    IssuedAccessToken accessToken = jwtAccessTokenManager.issue(command);
+    IssuedAccessToken accessToken = accessTokenIssuer.issue(command);
 
     // Refresh Token 발급(비동기) - 내부에서 해시 저장 및 TTL 적용까지 수행
     Mono<IssuedRefreshToken> refreshTokenMono = refreshTokenManager.issue(userId);
@@ -90,10 +91,10 @@ public class AuthTokenService {
               String userId = rotated.userId();
 
               // TODO: 실제 운영에서는 role/nickname 등 Claim 구성은 사용자 서비스 조회 또는 정책에 맞게 구성
-              AcessTokenIssueCommand command =
-                  new AcessTokenIssueCommand(userId, "USER", List.of("USER_ROLE"));
+              AccessTokenIssueCommand command =
+                  new AccessTokenIssueCommand(userId, "USER", List.of("USER_ROLE"));
 
-              IssuedAccessToken access = jwtAccessTokenManager.issue(command);
+              IssuedAccessToken access = accessTokenIssuer.issue(command);
 
               return new IssuedToken(
                   access.token(),

@@ -1,9 +1,12 @@
-package org.todaybook.gateway.auth.infrastructure.refresh;
+package org.todaybook.gateway.auth.application.refresh;
 
 import java.time.Duration;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.todaybook.gateway.auth.application.UnauthorizedException;
+import org.todaybook.gateway.auth.application.exception.UnauthorizedException;
+import org.todaybook.gateway.auth.application.spi.refresh.RefreshTokenEncoder;
+import org.todaybook.gateway.auth.application.spi.refresh.RefreshTokenStore;
+import org.todaybook.gateway.auth.infrastructure.refresh.RefreshTokenProperties;
 import reactor.core.publisher.Mono;
 
 /**

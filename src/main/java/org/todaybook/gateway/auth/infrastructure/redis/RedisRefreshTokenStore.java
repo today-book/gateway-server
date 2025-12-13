@@ -5,7 +5,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.stereotype.Component;
-import org.todaybook.gateway.auth.infrastructure.refresh.RefreshTokenStore;
+import org.todaybook.gateway.auth.application.spi.refresh.RefreshTokenStore;
 import reactor.core.publisher.Mono;
 
 @Component

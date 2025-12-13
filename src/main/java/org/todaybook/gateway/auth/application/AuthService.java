@@ -3,7 +3,8 @@ package org.todaybook.gateway.auth.application;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.todaybook.gateway.auth.application.dto.IssuedToken;
-import org.todaybook.gateway.auth.application.spi.AuthCodeConsumer;
+import org.todaybook.gateway.auth.application.exception.UnauthorizedException;
+import org.todaybook.gateway.auth.application.spi.authcode.AuthCodeConsumer;
 import reactor.core.publisher.Mono;
 
 /**

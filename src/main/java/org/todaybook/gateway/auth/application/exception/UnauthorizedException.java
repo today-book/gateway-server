@@ -1,4 +1,4 @@
-package org.todaybook.gateway.auth.application;
+package org.todaybook.gateway.auth.application.exception;
 
 import org.todaybook.gateway.error.GatewayErrorCode;
 import org.todaybook.gateway.error.GatewayException;

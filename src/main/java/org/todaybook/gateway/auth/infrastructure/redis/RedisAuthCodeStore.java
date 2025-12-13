@@ -4,8 +4,8 @@ import java.time.Duration;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.stereotype.Component;
-import org.todaybook.gateway.auth.application.spi.AuthCodeConsumer;
-import org.todaybook.gateway.auth.application.spi.AuthCodeSaver;
+import org.todaybook.gateway.auth.application.spi.authcode.AuthCodeConsumer;
+import org.todaybook.gateway.auth.application.spi.authcode.AuthCodeSaver;
 import reactor.core.publisher.Mono;
 
 @Component

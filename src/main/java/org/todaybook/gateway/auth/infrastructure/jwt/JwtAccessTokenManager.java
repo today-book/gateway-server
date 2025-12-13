@@ -12,6 +12,9 @@ import javax.crypto.SecretKey;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.stereotype.Component;
+import org.todaybook.gateway.auth.application.spi.token.AccessTokenIssuer;
+import org.todaybook.gateway.auth.application.token.AccessTokenIssueCommand;
+import org.todaybook.gateway.auth.application.token.IssuedAccessToken;
 
 /**
  * Access Token(JWT)의 발급 및 파싱을 담당하는 Manager 클래스입니다.
@@ -41,7 +44,7 @@ import org.springframework.stereotype.Component;
 @Component
 @EnableConfigurationProperties(AccessTokenProperties.class)
 @RequiredArgsConstructor
-public class JwtAccessTokenManager {
+public class JwtAccessTokenManager implements AccessTokenIssuer {
 
   /** Access Token(JWT) 관련 설정 값(시크릿 키, 만료 시간 등) */
   private final AccessTokenProperties props;
@@ -96,7 +99,8 @@ public class JwtAccessTokenManager {
    * @param command Access Token 생성에 필요한 사용자 식별자 및 Claim 정보
    * @return 발급된 Access Token 정보(JWT 문자열 + 만료 시간)
    */
-  public IssuedAccessToken issue(AcessTokenIssueCommand command) {
+  @Override
+  public IssuedAccessToken issue(AccessTokenIssueCommand command) {
     String jwtToken =
         Jwts.builder()
             .subject(command.userId())

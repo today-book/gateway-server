@@ -12,6 +12,7 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.util.matcher.OrServerWebExchangeMatcher;
 import org.springframework.security.web.server.util.matcher.PathPatternParserServerWebExchangeMatcher;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher;
+import org.todaybook.gateway.security.exception.CustomAuthenticationEntryPoint;
 import org.todaybook.gateway.security.oauth.OAuth2SuccessHandler;
 import org.todaybook.gateway.security.publicapi.PublicApiPaths;
 
@@ -21,6 +22,7 @@ import org.todaybook.gateway.security.publicapi.PublicApiPaths;
 public class SecurityConfig {
 
   private final OAuth2SuccessHandler successHandler;
+  private final CustomAuthenticationEntryPoint authenticationEntryPoint;
 
   @Bean
   @Order(1)
@@ -50,6 +52,12 @@ public class SecurityConfig {
                     .permitAll()
                     .anyExchange()
                     .authenticated())
+        // ✅ 우리가 발급한 JWT 검증
+        .oauth2ResourceServer(
+            oauth2 ->
+                oauth2
+                    .jwt(Customizer.withDefaults())
+                    .authenticationEntryPoint(authenticationEntryPoint))
         .oauth2Login(oauth2 -> oauth2.authenticationSuccessHandler(successHandler))
         .build();
   }

@@ -1,4 +1,4 @@
-package org.todaybook.gateway.security.jwt;
+package org.todaybook.gateway.auth.infrastructure.jwt;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -8,5 +8,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class JwtProperties {
 
   private String secret;
-  private Long expiration;
+  private Long accessTokenExpirationSeconds;
+  private Long refreshTokenExpirationSeconds;
 }

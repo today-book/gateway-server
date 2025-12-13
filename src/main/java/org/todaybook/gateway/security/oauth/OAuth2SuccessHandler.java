@@ -11,7 +11,7 @@ import org.springframework.security.web.server.WebFilterExchange;
 import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
-import org.todaybook.gateway.auth.infrastructure.redis.RedisAuthCodeStore;
+import org.todaybook.gateway.auth.application.spi.AuthCodeSaver;
 import org.todaybook.gateway.security.kakao.KakaoOAuth2User;
 import reactor.core.publisher.Mono;
 
@@ -30,7 +30,7 @@ import reactor.core.publisher.Mono;
 public class OAuth2SuccessHandler implements ServerAuthenticationSuccessHandler {
 
   /** OAuth 로그인 이후 발급된 authCode를 Redis에 저장하는 스토어 */
-  private final RedisAuthCodeStore authCodeStore;
+  private final AuthCodeSaver authCodeSaver;
 
   /** OAuth 관련 설정 값 (로그인 성공 리다이렉트 URI 등) */
   private final AuthProperties authProperties;
@@ -102,7 +102,7 @@ public class OAuth2SuccessHandler implements ServerAuthenticationSuccessHandler 
    * @return 저장 성공 여부를 나타내는 Mono
    */
   private Mono<Boolean> saveAuthCode(String authCode, KakaoOAuth2User user) {
-    return authCodeStore.save(authCode, user.kakaoId(), Duration.ofSeconds(60));
+    return authCodeSaver.save(authCode, user.kakaoId(), Duration.ofSeconds(60));
   }
 
   /**

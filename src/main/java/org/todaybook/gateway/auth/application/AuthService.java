@@ -3,7 +3,7 @@ package org.todaybook.gateway.auth.application;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.todaybook.gateway.auth.application.dto.IssuedToken;
-import org.todaybook.gateway.auth.infrastructure.redis.RedisAuthCodeStore;
+import org.todaybook.gateway.auth.application.spi.AuthCodeConsumer;
 import reactor.core.publisher.Mono;
 
 /**
@@ -30,11 +30,11 @@ import reactor.core.publisher.Mono;
 public class AuthService {
 
   /**
-   * OAuth 로그인 과정에서 발급된 authCode를 저장/소비하는 저장소입니다.
+   * OAuth 로그인 과정에서 발급된 authCode를 소비하는 저장소입니다.
    *
    * <p>authCode는 일회성 인증 수단으로, 검증과 동시에 반드시 소비(delete)되어야 합니다.
    */
-  private final RedisAuthCodeStore authCodeStore;
+  private final AuthCodeConsumer authCodeConsumer;
 
   /** Access Token / Refresh Token 발급 및 재발급 정책을 담당하는 서비스입니다. */
   private final AuthTokenService authTokenService;
@@ -94,7 +94,7 @@ public class AuthService {
    * @return 인증된 사용자 식별자(userId)
    */
   private Mono<String> verifyAndConsumeAuthCode(String authCode) {
-    return authCodeStore
+    return authCodeConsumer
         .getAndDeleteKakaoId(authCode)
         .switchIfEmpty(Mono.error(new UnauthorizedException("INVALID_AUTH_CODE")));
   }

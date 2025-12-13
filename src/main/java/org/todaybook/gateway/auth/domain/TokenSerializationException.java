@@ -1,4 +1,4 @@
-package org.todaybook.gateway.security.exception;
+package org.todaybook.gateway.auth.domain;
 
 public class TokenSerializationException extends RuntimeException {
 

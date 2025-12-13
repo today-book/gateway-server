@@ -1,4 +1,4 @@
-package org.todaybook.gateway.security.jwt;
+package org.todaybook.gateway.auth.Infrastructure.jwt;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.Jwts.SIG;
@@ -12,7 +12,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.stereotype.Component;
-import org.todaybook.gateway.Infrastructure.redis.RefreshTokenStore;
+import org.todaybook.gateway.auth.Infrastructure.redis.RefreshTokenStore;
+import org.todaybook.gateway.auth.domain.JwtToken;
 import reactor.core.publisher.Mono;
 
 @Slf4j

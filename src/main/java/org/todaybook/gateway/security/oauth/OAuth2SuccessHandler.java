@@ -12,10 +12,10 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.server.WebFilterExchange;
 import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
-import org.todaybook.gateway.security.exception.TokenSerializationException;
-import org.todaybook.gateway.security.jwt.JwtProvider;
-import org.todaybook.gateway.security.jwt.JwtToken;
-import org.todaybook.gateway.security.jwt.JwtTokenCreateCommand;
+import org.todaybook.gateway.auth.domain.TokenSerializationException;
+import org.todaybook.gateway.auth.Infrastructure.jwt.JwtProvider;
+import org.todaybook.gateway.auth.domain.JwtToken;
+import org.todaybook.gateway.auth.Infrastructure.jwt.JwtTokenCreateCommand;
 import org.todaybook.gateway.security.kakao.KakaoOAuth2User;
 import reactor.core.publisher.Mono;
 

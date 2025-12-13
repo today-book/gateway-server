@@ -1,4 +1,4 @@
-package org.todaybook.gateway.security.jwt;
+package org.todaybook.gateway.auth.Infrastructure.jwt;
 
 import java.util.List;
 

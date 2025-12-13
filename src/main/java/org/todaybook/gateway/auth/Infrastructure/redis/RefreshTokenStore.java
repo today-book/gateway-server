@@ -1,4 +1,4 @@
-package org.todaybook.gateway.Infrastructure.redis;
+package org.todaybook.gateway.auth.Infrastructure.redis;
 
 import java.time.Duration;
 import lombok.RequiredArgsConstructor;

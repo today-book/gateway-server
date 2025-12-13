@@ -1,4 +1,4 @@
-package org.todaybook.gateway.Infrastructure.redis;
+package org.todaybook.gateway.auth.Infrastructure.redis;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

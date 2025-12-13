@@ -3,10 +3,10 @@ package org.todaybook.gateway.auth.application;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.todaybook.gateway.Infrastructure.redis.RefreshTokenStore;
-import org.todaybook.gateway.security.jwt.JwtProvider;
-import org.todaybook.gateway.security.jwt.JwtToken;
-import org.todaybook.gateway.security.jwt.JwtTokenCreateCommand;
+import org.todaybook.gateway.auth.Infrastructure.redis.RefreshTokenStore;
+import org.todaybook.gateway.auth.Infrastructure.jwt.JwtProvider;
+import org.todaybook.gateway.auth.domain.JwtToken;
+import org.todaybook.gateway.auth.Infrastructure.jwt.JwtTokenCreateCommand;
 import reactor.core.publisher.Mono;
 
 @Service

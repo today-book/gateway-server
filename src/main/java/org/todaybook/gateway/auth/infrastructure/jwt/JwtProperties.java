@@ -1,4 +1,4 @@
-package org.todaybook.gateway.auth.Infrastructure.jwt;
+package org.todaybook.gateway.auth.infrastructure.jwt;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

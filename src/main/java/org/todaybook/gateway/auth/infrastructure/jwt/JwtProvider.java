@@ -1,4 +1,4 @@
-package org.todaybook.gateway.auth.Infrastructure.jwt;
+package org.todaybook.gateway.auth.infrastructure.jwt;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

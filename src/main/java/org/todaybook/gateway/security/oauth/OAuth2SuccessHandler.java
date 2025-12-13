@@ -11,7 +11,7 @@ import org.springframework.security.web.server.WebFilterExchange;
 import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
-import org.todaybook.gateway.auth.Infrastructure.redis.AuthCodeStore;
+import org.todaybook.gateway.auth.infrastructure.redis.AuthCodeStore;
 import org.todaybook.gateway.security.kakao.KakaoOAuth2User;
 import reactor.core.publisher.Mono;
 

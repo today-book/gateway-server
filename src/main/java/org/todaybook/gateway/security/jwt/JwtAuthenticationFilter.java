@@ -8,11 +8,12 @@ import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.server.resource.authentication.AbstractOAuth2TokenAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
+import org.todaybook.gateway.error.GatewayErrorCode;
+import org.todaybook.gateway.error.GatewayException;
 import org.todaybook.gateway.security.publicapi.PublicApiMatcher;
 import reactor.core.publisher.Mono;
 
@@ -99,7 +100,7 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
             .switchIfEmpty(
                 isPublicApi
                     ? Mono.just(setPublicHeaders(exchange))
-                    : unauthorized(exchange).then(Mono.empty()));
+                    : Mono.error(new GatewayException(GatewayErrorCode.UNAUTHORIZED)));
 
     return exchangeMono.flatMap(chain::filter);
   }
@@ -121,12 +122,6 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
                     .header(HEADER_GATEWAY_TRUSTED, "true")
                     .header(HEADER_CLIENT_TYPE, "PUBLIC"))
         .build();
-  }
-
-  /** 인증이 필요한 요청에 대해 인증 정보가 존재하지 않을 경우 401 Unauthorized 응답을 반환합니다. */
-  private Mono<Void> unauthorized(ServerWebExchange exchange) {
-    exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-    return exchange.getResponse().setComplete();
   }
 
   /**

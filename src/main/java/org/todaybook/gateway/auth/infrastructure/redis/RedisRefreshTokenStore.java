@@ -15,7 +15,7 @@ import reactor.core.publisher.Mono;
  * <h3>역할</h3>
  *
  * <ul>
- *   <li>refresh token ↔ userId 매핑을 Redis에 저장합니다.
+ *   <li>refresh token ↔ id 매핑을 Redis에 저장합니다.
  *   <li>refresh token 회전(rotate)을 Lua 스크립트로 원자적으로 수행합니다.
  * </ul>
  *
@@ -95,7 +95,7 @@ public class RedisRefreshTokenStore implements RefreshTokenStore {
    * @param oldRefreshToken 기존 refresh token
    * @param newRefreshToken 새로 발급할 refresh token
    * @param ttl 새 refresh token 유효 시간
-   * @return 성공 시 userId, 기존 토큰이 유효하지 않으면 empty
+   * @return 성공 시 id, 기존 토큰이 유효하지 않으면 empty
    */
   @Override
   public Mono<String> rotate(String oldRefreshToken, String newRefreshToken, Duration ttl) {

@@ -93,7 +93,7 @@ public class RefreshTokenManager {
    * <p>기존 토큰이 유효하지 않거나 이미 사용된 경우, 재사용 공격으로 판단하여 인증 오류를 반환합니다.
    *
    * @param oldRawRefreshToken 클라이언트가 보유한 기존 refresh token 원문
-   * @return 회전된 Refresh Token 정보(userId + 새 raw token + 만료 시간)
+   * @return 회전된 Refresh Token 정보(id + 새 raw token + 만료 시간)
    */
   public Mono<RotatedRefreshToken> rotate(String oldRawRefreshToken) {
     String oldHashedRefreshToken = tokenEncoder.encode(oldRawRefreshToken);

@@ -1,4 +1,4 @@
-package org.todaybook.gateway.auth.infrastructure.webclient;
+package org.todaybook.gateway.auth.infrastructure.userservice.client;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -6,6 +6,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.todaybook.gateway.auth.application.exception.InternalServerErrorException;
+import org.todaybook.gateway.auth.infrastructure.userservice.request.OauthUserCreateRequest;
+import org.todaybook.gateway.auth.infrastructure.userservice.model.UserSummary;
 import reactor.core.publisher.Mono;
 
 /**
@@ -44,12 +46,7 @@ public class UserServiceClient {
   public Mono<UserSummary> findByOauth(String provider, String providerUserId) {
     return webClient
         .get()
-        .uri(
-            uri ->
-                uri.path("/internal/v1/users/oauth")
-                    .queryParam("provider", provider)
-                    .queryParam("providerUserId", providerUserId)
-                    .build())
+        .uri("/internal/v1/users/{provider}/{providerUserId}", provider, providerUserId)
         .exchangeToMono(
             resp -> {
               if (resp.statusCode() == HttpStatus.NOT_FOUND) {
@@ -72,10 +69,11 @@ public class UserServiceClient {
    * @param req OAuth 회원가입 요청 정보
    * @return 생성(또는 기존) 유저 요약 정보
    */
-  public Mono<UserSummary> createOauthUser(UserOauthCreateRequest req) {
+  public Mono<UserSummary> createOauthUser(OauthUserCreateRequest req) {
+
     return webClient
         .post()
-        .uri("/internal/v1/users/oauth")
+        .uri("/internal/v1/users/{provider}", req.provider().getPath())
         .bodyValue(req)
         .exchangeToMono(
             resp -> {
@@ -90,7 +88,7 @@ public class UserServiceClient {
   }
 
   /**
-   * userId 기준으로 유저를 조회합니다.
+   * id 기준으로 유저를 조회합니다.
    *
    * <p>404는 호출부에서 정책적으로 판단할 수 있도록 Mono.empty()로 변환합니다. (예: 로그인 플로우에서는 비정상, 가입 플로우에서는 정상 처리 등)
    *

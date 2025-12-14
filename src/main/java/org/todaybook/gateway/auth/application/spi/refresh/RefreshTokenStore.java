@@ -64,7 +64,7 @@ public interface RefreshTokenStore {
    * @param oldRefreshToken 기존 인코딩된 Refresh Token
    * @param newRefreshToken 새로 발급된 인코딩된 Refresh Token
    * @param ttl 새 Refresh Token의 유효 기간
-   * @return 사용자 식별자(userId)를 담은 {@code Mono}, 회전에 실패한 경우 {@code Mono.empty()}
+   * @return 사용자 식별자(id)를 담은 {@code Mono}, 회전에 실패한 경우 {@code Mono.empty()}
    */
   Mono<String> rotate(String oldRefreshToken, String newRefreshToken, Duration ttl);
 }

@@ -6,8 +6,10 @@ import org.springframework.util.StringUtils;
 import org.todaybook.gateway.auth.application.dto.AuthenticatedUser;
 import org.todaybook.gateway.auth.application.exception.InternalServerErrorException;
 import org.todaybook.gateway.auth.application.exception.UnauthorizedException;
-import org.todaybook.gateway.auth.infrastructure.webclient.UserOauthCreateRequest;
-import org.todaybook.gateway.auth.infrastructure.webclient.UserServiceClient;
+import org.todaybook.gateway.auth.infrastructure.userservice.model.OauthIdentity;
+import org.todaybook.gateway.auth.infrastructure.userservice.model.OauthProvider;
+import org.todaybook.gateway.auth.infrastructure.userservice.mapper.UserCreateRequestMapper;
+import org.todaybook.gateway.auth.infrastructure.userservice.client.UserServiceClient;
 import org.todaybook.gateway.security.oauth.AuthCodePayload;
 import reactor.core.publisher.Mono;
 
@@ -36,17 +38,24 @@ public class UserIdentityService {
   private final UserServiceClient userServiceClient;
 
   /**
-   * OAuth payload를 기반으로 "기존 유저 조회" 또는 "신규 유저 생성"을 수행합니다.
+   * OAuth 인증 이후 전달받은 payload를 기반으로 유저를 조회하거나, 존재하지 않으면 생성합니다.
    *
-   * <p>흐름:
+   * <p><b>호출 시점 전제(Why):</b>
+   *
+   * <ul>
+   *   <li>이 메서드는 OAuth 인증이 정상적으로 완료된 이후에만 호출됩니다.
+   *   <li>따라서 payload 자체가 null이거나 provider/providerUserId가 비어 있는 경우는 클라이언트 오류가 아닌 서버 내부 상태 불일치(버그)로
+   *       간주합니다.
+   * </ul>
+   *
+   * <p><b>처리 흐름:</b>
    *
    * <ol>
-   *   <li>provider/providerUserId로 유저 조회
-   *   <li>없으면 회원가입 요청(idempotent)
-   *   <li>UserSummary → AuthenticatedUser로 변환
+   *   <li>OAuth identity(provider + providerUserId) 파싱 및 검증
+   *   <li>User 서비스에 해당 identity로 유저 조회
+   *   <li>존재하지 않으면 회원가입 요청(idempotent)
+   *   <li>UserSummary를 인증 컨텍스트용 {@link AuthenticatedUser}로 변환
    * </ol>
-   *
-   * <p>이 메서드는 "인증 성공 후" 호출되므로, provider/providerUserId가 비어 있는 것은 서버 내부 버그로 간주합니다.
    */
   public Mono<AuthenticatedUser> resolveOrCreateFromOauth(AuthCodePayload payload) {
     if (payload == null) {
@@ -58,16 +67,14 @@ public class UserIdentityService {
               "Invalid OAuth payload: provider/providerUserId is blank"));
     }
 
-    String provider = payload.provider();
-    String providerUserId = payload.providerUserId();
+    OauthIdentity identity = toIdentity(payload);
 
     return userServiceClient
-        .findByOauth(provider, providerUserId)
+        .findByOauth(identity.provider().getPath(), identity.providerUserId())
         .map(AuthenticatedUser::from)
         .switchIfEmpty(
             userServiceClient
-                .createOauthUser(
-                    new UserOauthCreateRequest(provider, providerUserId, payload.nickname()))
+                .createOauthUser(UserCreateRequestMapper.toRequest(identity, payload.nickname()))
                 .map(AuthenticatedUser::from));
   }
 
@@ -81,7 +88,7 @@ public class UserIdentityService {
    */
   public Mono<AuthenticatedUser> loadAuthenticatedUser(String userId) {
     if (isBlank(userId)) {
-      return Mono.error(new InternalServerErrorException("userId is blank"));
+      return Mono.error(new InternalServerErrorException("id is blank"));
     }
 
     return userServiceClient
@@ -90,7 +97,33 @@ public class UserIdentityService {
         .map(AuthenticatedUser::from);
   }
 
+  /**
+   * 문자열이 실제 의미 있는 텍스트를 가지고 있는지 여부를 판단합니다.
+   *
+   * <p>OAuth payload 및 userId 검증 시, null/blank 처리 규칙을 한 곳에 고정하기 위해 분리했습니다.
+   */
   private boolean isBlank(String value) {
     return !StringUtils.hasText(value);
+  }
+
+  /**
+   * OAuth payload로부터 {@link OauthIdentity}를 생성합니다.
+   *
+   * <p><b>Why:</b>
+   *
+   * <ul>
+   *   <li>provider 문자열을 enum으로 변환하는 책임을 한 곳에 모으기 위함입니다.
+   *   <li>잘못된 provider 값은 외부 입력 오류이지만, 이 메서드가 호출되는 시점에서는 이미 인증이 완료된 상태이므로 서버 내부 상태 불일치로 간주하여 500 계열
+   *       예외로 변환합니다.
+   * </ul>
+   *
+   * <p>이 메서드에서 발생한 예외는 Reactive 체인에서 자동으로 error signal로 전파됩니다.
+   */
+  private OauthIdentity toIdentity(AuthCodePayload payload) {
+    try {
+      return new OauthIdentity(OauthProvider.from(payload.provider()), payload.providerUserId());
+    } catch (IllegalArgumentException e) {
+      throw new InternalServerErrorException("Invalid OAuth payload: " + e.getMessage(), e);
+    }
   }
 }

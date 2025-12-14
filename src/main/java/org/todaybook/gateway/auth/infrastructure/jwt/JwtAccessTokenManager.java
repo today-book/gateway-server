@@ -86,7 +86,7 @@ public class JwtAccessTokenManager implements AccessTokenIssuer {
    * <p>JWT에는 다음 정보가 포함됩니다.
    *
    * <ul>
-   *   <li>{@code sub} : 사용자 식별자(userId)
+   *   <li>{@code sub} : 사용자 식별자(id)
    *   <li>{@code nickname} : 사용자 표시 이름
    *   <li>{@code roles} : 사용자 권한 목록
    *   <li>{@code iat} : 토큰 발급 시각

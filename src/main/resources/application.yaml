@@ -1,6 +1,9 @@
 server:
   port: 9000
 spring:
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: false
   data:
     redis:
       host: ${REDIS_HOST}

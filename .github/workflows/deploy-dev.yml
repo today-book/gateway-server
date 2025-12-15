@@ -4,9 +4,11 @@ on:
     branches: [ "dev" ]
 
 env:
+  APP_NAME: gateway-server
   REGISTRY: ghcr.io
-  IMAGE_NAME: today-book/gateway-dev
+  IMAGE_NAME: today-book/gateway-server-dev
   VERSION: latest
+  PROFILE: dev
 
 jobs:
   deploy:
@@ -57,8 +59,8 @@ jobs:
           port: ${{ secrets.DEV_REMOTE_SSH_PORT }}
           script: |
             echo "--- 배포 시작 ---"
-            sudo docker stop gateway || true
-            sudo docker rm gateway || true
+            sudo docker stop ${{ env.APP_NAME }} || true
+            sudo docker rm ${{ env.APP_NAME }} || true
             sudo docker rmi ${{ env.IMAGE_URI }} || true
             
             echo "GHCR 로그인"
@@ -67,9 +69,8 @@ jobs:
             echo "이미지 Pull"
             sudo docker pull ${{ env.IMAGE_URI }}
             
-            sudo docker run -d --name gateway -p 9000:9000 \
-            -e SPRING_PROFILES_ACTIVE=dev \
-            -e SEARCH_SERVICE_URL=${{ secrets.DEV_SEARCH_SERVICE_URL }} \
+            sudo docker run -d --name ${{ env.APP_NAME }} -p 9000:9000 \
+            -e SPRING_PROFILES_ACTIVE=${{ env.PROFILE }} \
             -e BOOK_SERVICE_URL=${{ secrets.DEV_BOOK_SERVICE_URL }} \
             -e KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }} \
             -e KAKAO_CLIENT_SECRET=${{ secrets.KAKAO_CLIENT_SECRET }} \

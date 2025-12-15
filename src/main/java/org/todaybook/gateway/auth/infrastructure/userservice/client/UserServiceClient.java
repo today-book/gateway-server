@@ -1,6 +1,6 @@
 package org.todaybook.gateway.auth.infrastructure.userservice.client;
 
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.ClientResponse;
@@ -25,13 +25,16 @@ import reactor.core.publisher.Mono;
  * </ul>
  */
 @Component
+@EnableConfigurationProperties(UserServiceProperties.class)
 public class UserServiceClient {
 
   private final WebClient webClient;
 
-  public UserServiceClient(
-      WebClient.Builder builder, @Value("${user-service.url}") String baseUrl) {
-    this.webClient = builder.baseUrl(baseUrl).build();
+  public UserServiceClient(WebClient.Builder builder, UserServiceProperties userServiceProperties) {
+    this.webClient =
+        builder
+            .baseUrl(userServiceProperties.baseUrl() + userServiceProperties.internalPath())
+            .build();
   }
 
   /**
@@ -46,7 +49,7 @@ public class UserServiceClient {
   public Mono<UserSummary> findByOauth(String provider, String providerUserId) {
     return webClient
         .get()
-        .uri("/internal/v1/users/{provider}/{providerUserId}", provider, providerUserId)
+        .uri("/{provider}/{providerUserId}", provider, providerUserId)
         .exchangeToMono(
             resp -> {
               if (resp.statusCode() == HttpStatus.NOT_FOUND) {
@@ -73,7 +76,7 @@ public class UserServiceClient {
 
     return webClient
         .post()
-        .uri("/internal/v1/users/{provider}", req.provider().getPath())
+        .uri("/{provider}", req.provider().getPath())
         .bodyValue(req)
         .exchangeToMono(
             resp -> {
@@ -98,7 +101,7 @@ public class UserServiceClient {
   public Mono<UserSummary> findByUserId(String userId) {
     return webClient
         .get()
-        .uri("/internal/v1/users/{userId}", userId)
+        .uri("/{userId}", userId)
         .exchangeToMono(
             resp -> {
               if (resp.statusCode() == HttpStatus.NOT_FOUND) {

@@ -1,6 +1,7 @@
 package org.todaybook.gateway.auth.application.spi.authcode;
 
 import java.time.Duration;
+import org.todaybook.gateway.security.oauth.AuthCodePayload;
 import reactor.core.publisher.Mono;
 
 /**
@@ -33,9 +34,9 @@ public interface AuthCodeSaver {
    * authCode와 사용자 식별자를 TTL과 함께 저장합니다.
    *
    * @param authCode OAuth 인증 이후 발급된 일회성 인증 코드
-   * @param kakaoId authCode와 매핑될 사용자 식별자
+   * @param payload authCode와 매핑될 사용자 정보
    * @param ttl authCode의 유효 기간
    * @return 저장 성공 여부를 나타내는 {@code Mono<Boolean>}
    */
-  Mono<Boolean> save(String authCode, String kakaoId, Duration ttl);
+  Mono<Boolean> save(String authCode, AuthCodePayload payload, Duration ttl);
 }

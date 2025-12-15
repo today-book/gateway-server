@@ -1,5 +1,6 @@
 package org.todaybook.gateway.auth.application.spi.authcode;
 
+import org.todaybook.gateway.security.oauth.AuthCodePayload;
 import reactor.core.publisher.Mono;
 
 /**
@@ -35,5 +36,5 @@ public interface AuthCodeConsumer {
    * @param authCode OAuth 인증 이후 발급된 일회성 인증 코드
    * @return 사용자 식별자(kakaoId)를 담은 Mono, authCode가 존재하지 않거나 이미 소비된 경우 {@code Mono.empty()}
    */
-  Mono<String> getAndDeleteKakaoId(String authCode);
+  Mono<AuthCodePayload> getAndDeletePayload(String authCode);
 }

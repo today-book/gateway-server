@@ -4,7 +4,7 @@ import java.time.Duration;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.todaybook.gateway.auth.application.exception.UnauthorizedException;
-import org.todaybook.gateway.auth.application.spi.refresh.RefreshTokenEncoder;
+import org.todaybook.gateway.auth.application.spi.refresh.RefreshTokenHasher;
 import org.todaybook.gateway.auth.application.spi.refresh.RefreshTokenStore;
 import org.todaybook.gateway.auth.infrastructure.refresh.RefreshTokenProperties;
 import reactor.core.publisher.Mono;
@@ -34,8 +34,8 @@ public class RefreshTokenManager {
   /** Refresh Token의 저장 및 원자적 회전을 담당하는 저장소 */
   private final RefreshTokenStore tokenStore;
 
-  /** Raw Refresh Token을 단방향 해시(HMAC)로 변환하는 인코더 */
-  private final RefreshTokenEncoder tokenEncoder;
+  /** Raw Refresh Token을 단방향 해시(HMAC)로 변환하는 해셔 */
+  private final RefreshTokenHasher tokenHasher;
 
   /** Refresh Token 원문을 생성하는 생성기(UUID 등) */
   private final RefreshTokenGenerator tokenGenerator;
@@ -61,7 +61,7 @@ public class RefreshTokenManager {
    */
   public Mono<IssuedRefreshToken> issue(String userId) {
     String rawRefreshToken = tokenGenerator.generate();
-    String hashedRefreshToken = tokenEncoder.encode(rawRefreshToken);
+    String hashedRefreshToken = tokenHasher.hash(rawRefreshToken);
     Duration ttl = Duration.ofSeconds(tokenProps.getExpirationSeconds());
 
     return tokenStore
@@ -93,13 +93,13 @@ public class RefreshTokenManager {
    * <p>기존 토큰이 유효하지 않거나 이미 사용된 경우, 재사용 공격으로 판단하여 인증 오류를 반환합니다.
    *
    * @param oldRawRefreshToken 클라이언트가 보유한 기존 refresh token 원문
-   * @return 회전된 Refresh Token 정보(userId + 새 raw token + 만료 시간)
+   * @return 회전된 Refresh Token 정보(id + 새 raw token + 만료 시간)
    */
   public Mono<RotatedRefreshToken> rotate(String oldRawRefreshToken) {
-    String oldHashedRefreshToken = tokenEncoder.encode(oldRawRefreshToken);
+    String oldHashedRefreshToken = tokenHasher.hash(oldRawRefreshToken);
 
     String newRawRefreshToken = tokenGenerator.generate();
-    String newHashedRefreshToken = tokenEncoder.encode(newRawRefreshToken);
+    String newHashedRefreshToken = tokenHasher.hash(newRawRefreshToken);
 
     Duration ttl = Duration.ofSeconds(tokenProps.getExpirationSeconds());
 
@@ -124,7 +124,7 @@ public class RefreshTokenManager {
    * @return 처리 완료 신호
    */
   public Mono<Void> revoke(String rawRefreshToken) {
-    String hashed = tokenEncoder.encode(rawRefreshToken);
+    String hashed = tokenHasher.hash(rawRefreshToken);
     return tokenStore.delete(hashed).then();
   }
 }

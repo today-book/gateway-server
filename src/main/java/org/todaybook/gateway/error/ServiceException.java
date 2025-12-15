@@ -9,26 +9,26 @@ import lombok.Getter;
  * @since 1.0.0.
  */
 @Getter
-public class GatewayException extends RuntimeException {
+public class ServiceException extends RuntimeException {
 
   private final GatewayErrorCode errorCode;
 
-  public GatewayException(GatewayErrorCode errorCode) {
+  public ServiceException(GatewayErrorCode errorCode) {
     super(errorCode.name());
     this.errorCode = errorCode;
   }
 
-  public GatewayException(GatewayErrorCode errorCode, String message) {
+  public ServiceException(GatewayErrorCode errorCode, String message) {
     super(message);
     this.errorCode = errorCode;
   }
 
-  public GatewayException(GatewayErrorCode errorCode, Throwable cause) {
+  public ServiceException(GatewayErrorCode errorCode, Throwable cause) {
     super(errorCode.name(), cause);
     this.errorCode = errorCode;
   }
 
-  public GatewayException(GatewayErrorCode errorCode, String message, Throwable cause) {
+  public ServiceException(GatewayErrorCode errorCode, String message, Throwable cause) {
     super(message, cause);
     this.errorCode = errorCode;
   }

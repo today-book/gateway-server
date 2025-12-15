@@ -13,7 +13,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import org.todaybook.gateway.error.GatewayErrorCode;
-import org.todaybook.gateway.error.GatewayException;
+import org.todaybook.gateway.error.ServiceException;
 import org.todaybook.gateway.security.publicapi.PublicApiMatcher;
 import reactor.core.publisher.Mono;
 
@@ -100,7 +100,7 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
             .switchIfEmpty(
                 isPublicApi
                     ? Mono.just(setPublicHeaders(exchange))
-                    : Mono.error(new GatewayException(GatewayErrorCode.UNAUTHORIZED)));
+                    : Mono.error(new ServiceException(GatewayErrorCode.UNAUTHORIZED)));
 
     return exchangeMono.flatMap(chain::filter);
   }

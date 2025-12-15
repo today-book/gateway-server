@@ -8,10 +8,10 @@ import javax.crypto.spec.SecretKeySpec;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.stereotype.Component;
-import org.todaybook.gateway.auth.application.spi.refresh.RefreshTokenEncoder;
+import org.todaybook.gateway.auth.application.spi.refresh.RefreshTokenHasher;
 
 /**
- * Refresh Token을 HMAC-SHA256 알고리즘으로 해싱하는 Encoder 구현체입니다.
+ * Refresh Token을 HMAC-SHA256 알고리즘으로 해싱하는 Hasher 구현체입니다.
  *
  * <p>이 클래스는 <b>Refresh Token 원문을 절대 저장하지 않기</b> 위한 보안 경계 역할을 합니다. 클라이언트로부터 전달받은 raw refresh token을
  * HMAC으로 해싱한 뒤, 저장소(Redis 등)에는 오직 해시 값만 저장하도록 강제합니다.
@@ -25,12 +25,12 @@ import org.todaybook.gateway.auth.application.spi.refresh.RefreshTokenEncoder;
  * </ul>
  *
  * <p>이 구현은 Infrastructure 레이어에 위치하며, 토큰 암호화 방식(HMAC, SHA, KMS 등)을 교체할 수 있도록 {@link
- * RefreshTokenEncoder} 인터페이스를 구현합니다.
+ * RefreshTokenHasher} 인터페이스를 구현합니다.
  */
 @Component
 @RequiredArgsConstructor
 @EnableConfigurationProperties(RefreshTokenProperties.class)
-public class HmacRefreshTokenEncoder implements RefreshTokenEncoder {
+public class HmacRefreshTokenHasher implements RefreshTokenHasher {
 
   /** HMAC 해싱에 사용할 알고리즘 (HmacSHA256) */
   private static final String HMAC_ALG = "HmacSHA256";
@@ -80,7 +80,7 @@ public class HmacRefreshTokenEncoder implements RefreshTokenEncoder {
    * @return HMAC으로 해싱된 refresh token 값
    */
   @Override
-  public String encode(String refreshToken) {
+  public String hash(String refreshToken) {
     try {
       Mac mac = Mac.getInstance(HMAC_ALG);
       mac.init(keySpec);

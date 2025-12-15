@@ -71,6 +71,8 @@ jobs:
             
             sudo docker run -d --name ${{ env.APP_NAME }} -p 9000:9000 \
             -e SPRING_PROFILES_ACTIVE=${{ env.PROFILE }} \
+            -e USER_SERVICE_URL=${{ secrets.DEV_USER_SERVICE_URL }} \
+            -e SEARCH_SERVICE_URL=${{ secrets.DEV_SEARCH_SERVICE_URL }} \
             -e BOOK_SERVICE_URL=${{ secrets.DEV_BOOK_SERVICE_URL }} \
             -e KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }} \
             -e KAKAO_CLIENT_SECRET=${{ secrets.KAKAO_CLIENT_SECRET }} \

@@ -93,7 +93,7 @@ public class OAuth2SuccessHandler implements ServerAuthenticationSuccessHandler 
   }
 
   /**
-   * authCode와 Kakao 사용자 식별자(kakaoId)를 Redis에 저장합니다.
+   * authCode와 Kakao 사용자 정보를 Redis에 저장합니다.
    *
    * <p>authCode는 짧은 TTL(60초)을 가지며, 로그인 API에서 token / token 발급 시 검증에 사용됩니다.
    *
@@ -102,7 +102,10 @@ public class OAuth2SuccessHandler implements ServerAuthenticationSuccessHandler 
    * @return 저장 성공 여부를 나타내는 Mono
    */
   private Mono<Boolean> saveAuthCode(String authCode, KakaoOAuth2User user) {
-    return authCodeSaver.save(authCode, user.kakaoId(), Duration.ofSeconds(60));
+    return authCodeSaver.save(
+        authCode,
+        new AuthCodePayload("kakao", user.kakaoId(), user.nickname()),
+        Duration.ofSeconds(60));
   }
 
   /**

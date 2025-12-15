@@ -7,7 +7,7 @@ import org.springframework.security.web.server.ServerAuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import org.todaybook.gateway.error.GatewayErrorCode;
-import org.todaybook.gateway.error.GatewayException;
+import org.todaybook.gateway.error.ServiceException;
 import reactor.core.publisher.Mono;
 
 @Slf4j
@@ -23,6 +23,6 @@ public class CustomAuthenticationEntryPoint implements ServerAuthenticationEntry
         exchange.getRequest().getMethod(),
         exchange.getRequest().getURI());
 
-    return Mono.error(new GatewayException(GatewayErrorCode.UNAUTHORIZED));
+    return Mono.error(new ServiceException(GatewayErrorCode.UNAUTHORIZED));
   }
 }

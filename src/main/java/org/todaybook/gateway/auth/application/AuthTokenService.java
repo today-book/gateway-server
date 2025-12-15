@@ -1,11 +1,12 @@
 package org.todaybook.gateway.auth.application;
 
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.todaybook.gateway.auth.application.dto.AuthenticatedUser;
 import org.todaybook.gateway.auth.application.dto.IssuedToken;
 import org.todaybook.gateway.auth.application.refresh.IssuedRefreshToken;
 import org.todaybook.gateway.auth.application.refresh.RefreshTokenManager;
+import org.todaybook.gateway.auth.application.refresh.RotatedRefreshToken;
 import org.todaybook.gateway.auth.application.spi.token.AccessTokenIssuer;
 import org.todaybook.gateway.auth.application.token.AccessTokenIssueCommand;
 import org.todaybook.gateway.auth.application.token.IssuedAccessToken;
@@ -40,31 +41,28 @@ public class AuthTokenService {
   private final RefreshTokenManager refreshTokenManager;
 
   /**
-   * 사용자 식별자를 기반으로 Access Token과 Refresh Token을 발급합니다.
+   * 신규 로그인 또는 최초 인증 시 토큰을 발급합니다.
    *
-   * <p>처리 흐름:
+   * <p>설계 의도:
    *
-   * <ol>
-   *   <li>Access Token(JWT) 발급
-   *   <li>Refresh Token 발급 및 저장(해싱 + TTL 적용 포함)
-   *   <li>클라이언트 응답 DTO로 조합
-   * </ol>
+   * <ul>
+   *   <li>Access Token은 동기적으로 즉시 발급합니다.
+   *   <li>Refresh Token은 저장소 접근이 필요하므로 비동기(Mono)로 발급합니다.
+   *   <li>두 토큰의 발급 책임을 분리하되, 최종 응답 DTO는 여기서 조합합니다.
+   * </ul>
    *
-   * <p>expiresIn 값은 일반적으로 Access Token의 TTL을 의미하며, Refresh Token TTL이 필요하다면 별도 필드로 분리하는 것을 권장합니다.
+   * <p>Access Token 발급이 순수 계산(JWT 서명)이라는 전제 하에 reactive 체인으로 감싸지 않고 동기 호출을 허용합니다.
    *
-   * @param userId 인증된 사용자 식별자
-   * @return 발급된 토큰 정보(Access/Refresh + expiresIn)
+   * @param user 인증이 완료된 사용자
+   * @return 발급된 Access/Refresh Token과 만료 정보를 포함한 결과
    */
-  public Mono<IssuedToken> issue(String userId) {
-    // TODO: 실제 운영에서는 role/nickname 등 Claim 구성은 사용자 서비스 조회 또는 정책에 맞게 구성
+  public Mono<IssuedToken> issue(AuthenticatedUser user) {
     AccessTokenIssueCommand command =
-        new AccessTokenIssueCommand(userId, "USER", List.of("USER_ROLE"));
+        new AccessTokenIssueCommand(user.userId(), user.nickname(), user.roles());
 
-    // Access Token 발급(동기) - 필요 시 Mono.fromSupplier로 감싸 예외/스케줄링을 일관되게 처리할 수 있습니다.
     IssuedAccessToken accessToken = accessTokenIssuer.issue(command);
 
-    // Refresh Token 발급(비동기) - 내부에서 해시 저장 및 TTL 적용까지 수행
-    Mono<IssuedRefreshToken> refreshTokenMono = refreshTokenManager.issue(userId);
+    Mono<IssuedRefreshToken> refreshTokenMono = refreshTokenManager.issue(user.userId());
 
     return refreshTokenMono.map(
         refreshToken ->
@@ -73,33 +71,18 @@ public class AuthTokenService {
   }
 
   /**
-   * Refresh Token을 이용해 Access Token과 Refresh Token을 재발급합니다.
+   * 기존 Refresh Token을 회전(rotation)합니다.
    *
-   * <p>기존 Refresh Token은 재사용 방지를 위해 회전(rotation)되며, 유효하지 않거나 이미 사용된 토큰인 경우 인증 오류가 발생합니다.
+   * <p>보안 정책상 Refresh Token은 재사용을 허용하지 않으며, 유효한 토큰이 요청되면 새로운 토큰으로 교체하고 기존 토큰은 즉시 무효화합니다.
    *
-   * <p>rotate 결과로부터 userId를 획득하여 Access Token을 다시 발급합니다. (별도 verify 없이 rotate를 검증 수단으로 사용하는 설계)
+   * <p>이 메서드는 Refresh Token 자체의 유효성 및 저장소 상태만을 다루며, 사용자 로딩이나 Access Token 재발급은 호출 측에서 명시적으로 수행하도록
+   * 분리합니다.
    *
    * @param oldRawRefreshToken 클라이언트가 보유한 기존 Refresh Token 원문
-   * @return 새로 발급된 토큰 정보(Access/Refresh + expiresIn)
+   * @return 회전된 Refresh Token과 사용자 식별자를 포함한 결과
    */
-  public Mono<IssuedToken> refresh(String oldRawRefreshToken) {
-    return refreshTokenManager
-        .rotate(oldRawRefreshToken)
-        .map(
-            rotated -> {
-              String userId = rotated.userId();
-
-              // TODO: 실제 운영에서는 role/nickname 등 Claim 구성은 사용자 서비스 조회 또는 정책에 맞게 구성
-              AccessTokenIssueCommand command =
-                  new AccessTokenIssueCommand(userId, "USER", List.of("USER_ROLE"));
-
-              IssuedAccessToken access = accessTokenIssuer.issue(command);
-
-              return new IssuedToken(
-                  access.token(),
-                  rotated.token(), // 새로 발급된 Refresh Token
-                  access.expiresInSeconds()); // expiresIn은 Access Token 기준
-            });
+  public Mono<RotatedRefreshToken> rotate(String oldRawRefreshToken) {
+    return refreshTokenManager.rotate(oldRawRefreshToken);
   }
 
   /**
@@ -112,5 +95,27 @@ public class AuthTokenService {
    */
   public Mono<Void> revokeRefreshToken(String refreshToken) {
     return refreshTokenManager.revoke(refreshToken);
+  }
+
+  /**
+   * Access Token만 단독으로 발급합니다.
+   *
+   * <p>사용 사례:
+   *
+   * <ul>
+   *   <li>Refresh Token 회전 이후 Access Token만 재발급하는 경우
+   *   <li>이미 인증된 사용자 컨텍스트가 존재하는 내부 흐름
+   * </ul>
+   *
+   * <p>Refresh Token 발급/저장과 무관한 순수 토큰 생성 유스케이스이므로 reactive 타입을 사용하지 않습니다.
+   *
+   * @param user 인증된 사용자
+   * @return 새로 발급된 Access Token
+   */
+  public IssuedAccessToken issueAccessToken(AuthenticatedUser user) {
+    AccessTokenIssueCommand command =
+        new AccessTokenIssueCommand(user.userId(), user.nickname(), user.roles());
+
+    return accessTokenIssuer.issue(command);
   }
 }

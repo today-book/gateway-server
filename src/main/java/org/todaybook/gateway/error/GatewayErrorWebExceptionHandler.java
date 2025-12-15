@@ -84,7 +84,7 @@ public class GatewayErrorWebExceptionHandler extends AbstractErrorWebExceptionHa
    */
   private GatewayErrorCode resolve(Throwable error) {
 
-    if (error instanceof GatewayException ge) {
+    if (error instanceof ServiceException ge) {
       return ge.getErrorCode();
     }
 
@@ -147,9 +147,8 @@ public class GatewayErrorWebExceptionHandler extends AbstractErrorWebExceptionHa
    * </ul>
    */
   private void logByLevel(GatewayErrorCode errorCode, Throwable error, ServerRequest request) {
-
     String path = request.path();
-    String method = request.methodName();
+    String method = request.method().name();
 
     switch (errorCode) {
       case SERVICE_UNAVAILABLE, GATEWAY_TIMEOUT, INTERNAL_ERROR ->

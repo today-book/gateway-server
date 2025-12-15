@@ -8,14 +8,16 @@ spring:
       password: ${REDIS_PASSWORD}
       timeout: 2s
   application:
-    name: gateway
+    name: gateway-server
   cloud:
+    discovery:
+      enabled: true
     gateway:
       server:
         webflux:
           routes:
             - id: search-service
-              uri: ${SEARCH_SERVICE_URL}
+              uri: lb://search-service
               predicates:
                 - Path=/api/v1/search/**
               filters:
@@ -55,7 +57,10 @@ token:
   refresh:
     secret: ${REFRESH_TOKEN_SECRET}
     expiration-seconds: ${REFRESH_TOKEN_EXPIRATION_SECONDS}
-
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
 ---
 spring:
   config:
@@ -73,6 +78,13 @@ spring:
       host: localhost
       port: 6379
       timeout: 2s
+eureka:
+  instance:
+    hostname: localhost
+    prefer-ip-address: false
+  client:
+    service-url:
+      defaultZone: http://localhost:9100/eureka/
 app:
   auth:
     login-success-redirect-uri: http://localhost:63342/today-book-front/login/success
@@ -98,3 +110,11 @@ app:
 cors:
   allowed-origins:
     - https://today-book.github.io
+
+eureka:
+  instance:
+    hostname: ${spring.application.name}
+    prefer-ip-address: false
+  client:
+    service-url:
+      defaultZone: http://eureka-server:9100/eureka/

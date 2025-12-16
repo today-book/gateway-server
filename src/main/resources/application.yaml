@@ -19,6 +19,17 @@ spring:
       server:
         webflux:
           routes:
+            - id: gateway-auth-refresh
+              uri: forward:/
+              predicates:
+                - Path=/auth/v1/refresh
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    redis-rate-limiter.replenishRate: 5
+                    redis-rate-limiter.burstCapacity: 10
+                    redis-rate-limiter.requestedTokens: 1
+                    key-resolver: "#{@authKeyResolver}"
             - id: search-service-api
               uri: lb://search-service
               predicates:
@@ -30,8 +41,8 @@ spring:
               filters:
                 - name: RequestRateLimiter
                   args:
-                    redis-rate-limiter.replenishRate: 20
-                    redis-rate-limiter.burstCapacity: 40
+                    redis-rate-limiter.replenishRate: 10
+                    redis-rate-limiter.burstCapacity: 20
                     redis-rate-limiter.requestedTokens: 1
                     key-resolver: "#{@searchKeyResolver}"
 
@@ -83,7 +94,7 @@ token:
 user-service:
   base-url: lb://user-service
   internal-path: /internal/v1/users
-  
+
 eureka:
   client:
     register-with-eureka: true

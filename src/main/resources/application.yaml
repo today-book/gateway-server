@@ -30,10 +30,24 @@ spring:
                     redis-rate-limiter.burstCapacity: 40
                     redis-rate-limiter.requestedTokens: 1
                     key-resolver: "#{@searchKeyResolver}"
-            - id: book-service
-              uri: ${BOOK_SERVICE_URL}
+            - id: book-service-api
+              uri: lb://book-service
               predicates:
                 - Path=/api/v1/books/**
+            - id: book-service-public
+              uri: lb://book-service
+              predicates:
+                - Path=/public/v1/books/**
+
+            - id: user-service-api
+              uri: lb://user-service
+              predicates:
+                - Path=/api/v1/users/**
+            - id: user-service-public
+              uri: lb://user-service
+              predicates:
+                - Path=/public/v1/users/**
+
   security:
     oauth2:
       client:

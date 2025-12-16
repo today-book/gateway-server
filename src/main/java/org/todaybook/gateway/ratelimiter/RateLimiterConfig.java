@@ -27,6 +27,25 @@ import reactor.core.publisher.Mono;
 public class RateLimiterConfig {
 
   /**
+   * 기본(default) RateLimit KeyResolver.
+   *
+   * <p>Gateway 전반에 공통으로 적용되는 기본 Rate Limit 식별자 생성 전략이다.
+   *
+   * <p>결정 기준:
+   *
+   * <ol>
+   *   <li>deviceId 쿠키가 존재하면 deviceId 기준
+   *   <li>deviceId가 없으면 클라이언트 IP 기준으로 fallback
+   * </ol>
+   *
+   * <p>새로운 공개 엔드포인트가 추가되었을 때 별도의 KeyResolver를 지정하지 않아도 최소한의 Rate Limit 보호를 제공하기 위한 "안전망" 용도로 사용한다.
+   */
+  @Bean
+  public KeyResolver defaultKeyResolver() {
+    return this::resolveRateLimitKey;
+  }
+
+  /**
    * Search API용 RateLimit KeyResolver.
    *
    * <p>공개 API이므로 호출 빈도가 높을 수 있어 deviceId 우선 → IP fallback 전략을 사용한다.

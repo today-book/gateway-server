@@ -1,0 +1,9 @@
+review:
+  auto: true
+  draft: false
+  branches:
+    ignore:
+      - merge
+      - merge/**
+      - docs
+      - docs/**

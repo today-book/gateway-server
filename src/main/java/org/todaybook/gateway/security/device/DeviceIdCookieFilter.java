@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.util.UUID;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
@@ -19,20 +20,33 @@ public class DeviceIdCookieFilter implements WebFilter {
 
   @Override
   public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-    var existing = exchange.getRequest().getCookies().getFirst(COOKIE_NAME);
+    var request = exchange.getRequest();
+
+    // 1) OPTIONS (CORS preflight)
+    if (request.getMethod() == HttpMethod.OPTIONS) {
+      return chain.filter(exchange);
+    }
+
+    // 2) auth 계열 요청 (login/refresh)
+    String path = request.getURI().getPath();
+    if (path.startsWith("/auth/")) {
+      return chain.filter(exchange);
+    }
+
+    // 3) 이미 있으면 통과
+    var existing = request.getCookies().getFirst(COOKIE_NAME);
     if (existing != null && !existing.getValue().isBlank()) {
       return chain.filter(exchange);
     }
 
-    String deviceId = UUID.randomUUID().toString();
-
+    // 4) 최초 1회만 발급
     ResponseCookie cookie =
-        ResponseCookie.from(COOKIE_NAME, deviceId)
+        ResponseCookie.from(COOKIE_NAME, UUID.randomUUID().toString())
             .path("/")
             .maxAge(Duration.ofDays(365))
             .sameSite("Lax")
-            .httpOnly(true) // JS에서 못 읽게(서버는 읽을 수 있음). rate limit 용도면 이게 더 안전
-            .secure(true) // HTTPS면 true 권장 (local은 프로필로 false 처리)
+            .httpOnly(true)
+            .secure(true)
             .build();
 
     exchange.getResponse().addCookie(cookie);

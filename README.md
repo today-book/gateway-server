@@ -1,12 +1,12 @@
 # TodayBook Gateway
 
 본 프로젝트는 **Spring Cloud Gateway(WebFlux)** 기반의 **API Gateway와 인증(Auth) 도메인**을 구현한 시스템이다.  
-Gateway는 외부 요청의 단일 진입점을 담당하며, Auth 도메인은 **OAuth 기반 로그인과 토큰 발급·관리**를 책임진다.
+Gateway는 외부 요청의 단일 진입점을 담당하며, Auth 도메인은 **OAuth2 기반 로그인과 토큰 발급·관리**를 책임진다.
 
 본 시스템은 **세션리스 인증 구조**를 채택하여 수평 확장이 가능하도록 설계되었으며,  
-외부 OAuth Provider는 사용자 식별에만 사용하고 **내부 서비스는 자체 발급 토큰만 신뢰**한다.
+외부 OAuth2 Provider는 사용자 식별에만 사용하고 **내부 서비스는 자체 발급 토큰만 신뢰**한다.
 
-로그인 과정에서는 OAuth 토큰을 직접 노출하지 않고 **일회성 authCode(UUID)** 를 발급·소비하여  
+로그인 과정에서는 OAuth2 토큰을 직접 노출하지 않고 **일회성 authCode(UUID)** 를 발급·소비하여  
 토큰 탈취 및 재사용 위험을 최소화한다.
 
 Refresh Token은 **Redis와 Lua Script 기반 Rotation 전략**으로 관리되어,  
@@ -25,11 +25,11 @@ Refresh Token은 **Redis와 Lua Script 기반 Rotation 전략**으로 관리되�
 
 - **Client**
     - 브라우저 또는 모바일 앱
-    - OAuth 로그인 요청, authCode 기반 로그인, 토큰 재발급 요청을 수행한다.
+    - OAuth2 로그인 요청, authCode 기반 로그인, 토큰 재발급 요청을 수행한다.
 
 - **API Gateway (Spring Cloud Gateway)**
     - 외부 요청의 단일 진입점(Entry Point)
-    - OAuth 로그인 진입, 인증 API(`/auth/**`) 처리
+    - OAuth2 로그인 진입, 인증 API(`/auth/**`) 처리
     - Rate Limiting, 공통 보안 정책 적용
 
 - **Auth Domain**
@@ -38,9 +38,9 @@ Refresh Token은 **Redis와 Lua Script 기반 Rotation 전략**으로 관리되�
     - Access Token / Refresh Token 발급 및 재발급
     - Refresh Token Rotation 처리
 
-- **OAuth Provider (Kakao)**
+- **OAuth2 Provider (Kakao)**
     - 사용자 신원 확인만 담당
-    - OAuth Access Token은 내부 시스템으로 전파되지 않는다.
+    - OAuth2 Access Token은 내부 시스템으로 전파되지 않는다.
 
 - **Redis**
     - authCode 임시 저장 (TTL 기반, 1회성)
@@ -49,8 +49,8 @@ Refresh Token은 **Redis와 Lua Script 기반 Rotation 전략**으로 관리되�
 
 ### 인증 흐름 요약
 
-1. Client는 OAuth Provider(Kakao)를 통해 로그인을 수행한다.
-2. OAuth 로그인 성공 시, Gateway/Auth 도메인은 **일회성 authCode**를 발급하여 Client로 전달한다.
+1. Client는 OAuth2 Provider(Kakao)를 통해 로그인을 수행한다.
+2. OAuth2 로그인 성공 시, Gateway/Auth 도메인은 **일회성 authCode**를 발급하여 Client로 전달한다.
 3. Client는 authCode를 사용해 `/auth/v1/login` API를 호출한다.
 4. Auth 도메인은 authCode를 **단 1회 소비**하여 사용자 식별 후 토큰을 발급한다.
 5. Access Token은 응답으로 전달되고, Refresh Token은 **HttpOnly Cookie**로 관리된다.
@@ -69,7 +69,7 @@ Auth 도메인을 독립적으로 분리할 수 있는 확장성을 고려한 �
 ### Gateway Responsibilities
 
 - 외부 요청의 **단일 진입점(Entry Point)** 역할 수행
-- OAuth 로그인 진입 및 인증 API(`/auth/**`) 라우팅
+- OAuth2 로그인 진입 및 인증 API(`/auth/**`) 라우팅
 - Rate Limiting, CORS 등 **공통 보안·운영 정책 적용**
 - 인증된 요청만 내부 로직으로 전달
 
@@ -91,20 +91,20 @@ Auth 도메인은 **인증 및 토큰 관리라는 핵심 도메인 로직**에�
 
 ## 3. Authentication Flow
 
-본 섹션에서는 OAuth 로그인부터 토큰 재발급까지의 전체 인증 흐름을 단계별로 설명한다.  
+본 섹션에서는 OAuth2 로그인부터 토큰 재발급까지의 전체 인증 흐름을 단계별로 설명한다.  
 각 흐름은 **보안 경계 명확화, 일회성 처리, 레이스 컨디션 방지**를 목표로 설계되었다.
 
-### 3.1 OAuth Login Flow (Kakao)
+### 3.1 OAuth2 Login Flow (Kakao)
 
-![OAuth 로그인](docs/images/flowchart_oauth_login.png)
+![OAuth2 로그인](docs/images/flowchart_oauth2_login.png)
 
-1. Client는 Gateway를 통해 OAuth Provider(Kakao)로 로그인 요청을 전달한다.
-2. 사용자가 Kakao 로그인을 완료하면, OAuth Provider는 Gateway로 인증 성공을 콜백한다.
-3. Gateway/Auth 도메인은 OAuth 사용자 정보를 기반으로 **일회성 authCode(UUID)** 를 생성한다.
+1. Client는 Gateway를 통해 OAuth2 Provider(Kakao)로 로그인 요청을 전달한다.
+2. 사용자가 Kakao 로그인을 완료하면, OAuth2 Provider는 Gateway로 인증 성공을 콜백한다.
+3. Gateway/Auth 도메인은 OAuth2 사용자 정보를 기반으로 **일회성 authCode(UUID)** 를 생성한다.
 4. authCode는 Redis에 **짧은 TTL**로 저장되며, Client는 authCode를 포함한 Redirect URL로 이동한다.
 
-> OAuth Access Token은 클라이언트 또는 내부 서비스로 전달되지 않으며,  
-> OAuth Provider는 사용자 신원 확인 용도로만 사용된다.
+> OAuth2 Access Token은 클라이언트 또는 내부 서비스로 전달되지 않으며,  
+> OAuth2 Provider는 사용자 신원 확인 용도로만 사용된다.
 
 ### 3.2 authCode Login Flow
 
@@ -112,7 +112,7 @@ Auth 도메인은 **인증 및 토큰 관리라는 핵심 도메인 로직**에�
 
 1. Client는 전달받은 authCode를 사용해 `/auth/v1/login` API를 호출한다.
 2. Auth 도메인은 Redis에서 authCode를 **단 1회 소비(get-and-delete)** 한다.
-3. authCode에 매핑된 OAuth 사용자 정보를 기반으로 사용자를 조회하거나 신규 생성한다.
+3. authCode에 매핑된 OAuth2 사용자 정보를 기반으로 사용자를 조회하거나 신규 생성한다.
 4. 인증이 완료되면 Access Token과 Refresh Token을 발급한다.
 5. Access Token은 응답 바디로 반환되며, Refresh Token은 **HttpOnly Cookie**로 설정된다.
 
@@ -151,9 +151,9 @@ Auth 도메인은 **인증 및 토큰 관리라는 핵심 도메인 로직**에�
 
 ### 일회성 authCode 기반 로그인
 
-OAuth 로그인 이후 토큰을 클라이언트에 직접 전달하지 않고,  
+OAuth2 로그인 이후 토큰을 클라이언트에 직접 전달하지 않고,  
 **일회성 authCode(UUID)** 를 발급하여 후속 로그인 API에서 단 1회만 소비하도록 설계하였다.  
-이를 통해 OAuth 토큰 노출을 방지하고, 인증 흐름의 보안 경계를 명확히 할 수 있다.
+이를 통해 OAuth2 토큰 노출을 방지하고, 인증 흐름의 보안 경계를 명확히 할 수 있다.
 
 ### 세션리스 인증 구조 채택
 
@@ -176,7 +176,7 @@ Redis Lua Script를 사용하여 **검증 → 폐기 → 신규 저장**을 하�
 ### Gateway 중심의 인증 진입점 통합
 
 모든 외부 요청은 Gateway를 통해 유입되도록 설계하여  
-OAuth 로그인, 인증 API 접근, 보안 정책 적용을 하나의 관문에서 통제한다.  
+OAuth2 로그인, 인증 API 접근, 보안 정책 적용을 하나의 관문에서 통제한다.  
 이를 통해 인증 로직이 각 서비스에 분산되는 것을 방지하고 운영 복잡도를 줄였다.
 
 ### Auth 도메인의 독립 가능성 유지
@@ -222,9 +222,9 @@ Refresh 요청 시 Cookie에 Refresh Token이 존재하지 않는 경우:
 - Refresh Token 유무와 관계없이 항상 동일한 결과를 반환한다.
 - 클라이언트의 중복 호출이나 네트워크 재시도 상황에서도 시스템 상태의 일관성을 유지한다.
 
-### OAuth Provider 장애 또는 실패
+### OAuth2 Provider 장애 또는 실패
 
-OAuth Provider(Kakao) 로그인 과정에서 오류가 발생할 경우:
+OAuth2 Provider(Kakao) 로그인 과정에서 오류가 발생할 경우:
 
 - 인증 흐름은 즉시 중단된다.
 - 내부 토큰 발급 및 상태 변경은 발생하지 않는다.
@@ -258,7 +258,7 @@ OAuth Provider(Kakao) 로그인 과정에서 오류가 발생할 경우:
 외부 요청의 단일 진입점에서 인증 흐름과 보안 정책을 통합적으로 제어하도록 설계되었다.
 
 Gateway는 트래픽 제어와 보안 관문 역할을 담당하고,  
-Auth 도메인은 OAuth 기반 로그인과 토큰 발급·관리를 책임지도록  
+Auth 도메인은 OAuth2 기반 로그인과 토큰 발급·관리를 책임지도록  
 **명확한 책임 분리 구조**를 갖는다.
 
 일회성 authCode 기반 로그인과 **Redis + Lua Script를 활용한 Refresh Token Rotation**을 통해  

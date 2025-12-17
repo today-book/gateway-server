@@ -1,3 +1,11 @@
+x-rl-default: &rl_default
+  name: RequestRateLimiter
+  args:
+    key-resolver: "#{@rateLimitKeyResolver}"
+    redis-rate-limiter.replenishRate: 50
+    redis-rate-limiter.burstCapacity: 100
+    redis-rate-limiter.requestedTokens: 1
+
 server:
   port: 9000
 spring:
@@ -18,13 +26,6 @@ spring:
     gateway:
       server:
         webflux:
-          default-filters:
-            - name: RequestRateLimiter
-              args:
-                redis-rate-limiter.replenishRate: 50
-                redis-rate-limiter.burstCapacity: 100
-                redis-rate-limiter.requestedTokens: 1
-                key-resolver: "#{@defaultKeyResolver}"
           routes:
             - id: gateway-auth-refresh
               uri: forward:/
@@ -36,11 +37,21 @@ spring:
                     redis-rate-limiter.replenishRate: 5
                     redis-rate-limiter.burstCapacity: 10
                     redis-rate-limiter.requestedTokens: 1
-                    key-resolver: "#{@authKeyResolver}"
+                    key-resolver: "#{@rateLimitKeyResolver}"
+            - id: gateway-auth-default
+              uri: forward:/
+              predicates:
+                - Path=/auth/v1/**
+              filters:
+                - *rl_default
+
             - id: search-service-api
               uri: lb://search-service
               predicates:
                 - Path=/api/v1/search/**
+              filters:
+                - *rl_default
+
             - id: search-service-public
               uri: lb://search-service
               predicates:
@@ -51,25 +62,35 @@ spring:
                     redis-rate-limiter.replenishRate: 10
                     redis-rate-limiter.burstCapacity: 20
                     redis-rate-limiter.requestedTokens: 1
-                    key-resolver: "#{@searchKeyResolver}"
+                    key-resolver: "#{@rateLimitKeyResolver}"
 
             - id: book-service-api
               uri: lb://book-service
               predicates:
                 - Path=/api/v1/books/**
+              filters:
+                - *rl_default
+
             - id: book-service-public
               uri: lb://book-service
               predicates:
                 - Path=/public/v1/books/**
+              filters:
+                - *rl_default
 
             - id: user-service-api
               uri: lb://user-service
               predicates:
                 - Path=/api/v1/users/**
+              filters:
+                - *rl_default
+
             - id: user-service-public
               uri: lb://user-service
               predicates:
                 - Path=/public/v1/users/**
+              filters:
+                - *rl_default
 
   security:
     oauth2:

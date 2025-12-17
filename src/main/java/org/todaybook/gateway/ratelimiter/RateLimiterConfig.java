@@ -4,6 +4,7 @@ import java.net.InetSocketAddress;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;
@@ -12,58 +13,44 @@ import reactor.core.publisher.Mono;
 /**
  * Gateway Rate Limiter 설정.
  *
- * <p>Spring Cloud Gateway의 {@link KeyResolver}를 이용하여 요청별 Rate Limit Key를 결정한다.
+ * <p>Spring Cloud Gateway의 {@link KeyResolver}를 이용해 요청을 식별할 Rate Limit Key 생성 전략을 정의한다.
  *
- * <p>기본 전략:
+ * <p>이 설정은 Gateway 전반에 공통으로 사용되는 <b>대표(Primary) 식별 전략</b>을 제공한다.
+ *
+ * <p>식별 전략:
  *
  * <ol>
- *   <li>deviceId 쿠키가 있으면 deviceId 기준으로 제한
- *   <li>deviceId가 없으면 IP 기준으로 제한
+ *   <li>{@code deviceId} 쿠키가 존재하면 device 단위로 제한
+ *   <li>{@code deviceId}가 없으면 클라이언트 IP 기준으로 fallback
  * </ol>
  *
- * <p>이를 통해 NAT 환경(IP 공유)에서도 정상 사용자가 불필요하게 차단되는 것을 방지한다.
+ * <p>이를 통해 NAT 환경(IP 공유)에서도 정상 사용자가 과도하게 차단되는 것을 방지한다.
+ *
+ * <p>특정 라우트에서 다른 식별 전략이 필요한 경우, 별도의 {@link KeyResolver}를 추가하고 라우트 설정에서 명시적으로 지정할 수 있다.
  */
 @Configuration
 public class RateLimiterConfig {
 
   /**
-   * 기본(default) RateLimit KeyResolver.
+   * Gateway 공통 RateLimit KeyResolver.
    *
-   * <p>Gateway 전반에 공통으로 적용되는 기본 Rate Limit 식별자 생성 전략이다.
+   * <p>GatewayAutoConfiguration에서 기본으로 사용되는 <b>대표 KeyResolver</b>로 등록된다.
    *
    * <p>결정 기준:
    *
    * <ol>
-   *   <li>deviceId 쿠키가 존재하면 deviceId 기준
-   *   <li>deviceId가 없으면 클라이언트 IP 기준으로 fallback
+   *   <li>{@code deviceId} 쿠키가 있으면 device 단위 식별
+   *   <li>쿠키가 없으면 클라이언트 IP 기준으로 fallback
    * </ol>
    *
-   * <p>새로운 공개 엔드포인트가 추가되었을 때 별도의 KeyResolver를 지정하지 않아도 최소한의 Rate Limit 보호를 제공하기 위한 "안전망" 용도로 사용한다.
-   */
-  @Bean
-  public KeyResolver defaultKeyResolver() {
-    return this::resolveRateLimitKey;
-  }
-
-  /**
-   * Search API용 RateLimit KeyResolver.
+   * <p>{@link Primary}로 지정되어 있어, 별도의 KeyResolver가 추가되더라도 Gateway 초기화 시 기본 식별 전략으로 사용된다.
    *
-   * <p>공개 API이므로 호출 빈도가 높을 수 있어 deviceId 우선 → IP fallback 전략을 사용한다.
+   * <p>Rate Limit 강도(replenishRate, burstCapacity)는 라우트 설정(YAML)에서 엔드포인트 특성에 맞게 조절한다.
    */
   @Bean
-  public KeyResolver searchKeyResolver() {
-    return this::resolveRateLimitKey;
-  }
-
-  /**
-   * Auth API용 RateLimit KeyResolver.
-   *
-   * <p>인증/토큰 관련 엔드포인트는 공격 표적이 되기 쉬우므로 Search API와 동일한 Key 전략을 사용하되, 실제 제한 강도는 Route 설정(YAML)에서 더
-   * 타이트하게 조절한다.
-   */
-  @Bean
-  public KeyResolver authKeyResolver() {
-    return this::resolveRateLimitKey;
+  @Primary
+  public KeyResolver rateLimitKeyResolver() {
+    return this::resolveRateLimitKey; // deviceId -> ip
   }
 
   /**

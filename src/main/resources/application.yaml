@@ -200,3 +200,32 @@ eureka:
   client:
     service-url:
       defaultZone: http://eureka-server:9100/eureka/
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  security:
+    oauth2:
+      client:
+        registration:
+          kakao:
+            redirect-uri: "https://api.todaybook.life/login/oauth2/code/kakao"
+app:
+  auth:
+    login-success-redirect-uri: https://todaybook.life/login/success
+
+cors:
+  allowed-origins:
+    - https://todaybook.life
+
+eureka:
+  instance:
+    prefer-ip-address: true
+    ip-address: ${EUREKA_INSTANCE_IP_ADDRESS}
+    non-secure-port: ${EUREKA_INSTANCE_NONSECUREPORT}
+    instance-id: ${spring.application.name}:${eureka.instance.ip-address:${spring.cloud.client.ip-address}}:${eureka.instance.non-secure-port}
+  client:
+    service-url:
+      defaultZone: http://ip-10-0-10-218.ap-northeast-2.compute.internal:9100/eureka/

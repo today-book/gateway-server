@@ -214,11 +214,11 @@ spring:
             redirect-uri: "https://api.todaybook.life/login/oauth2/code/kakao"
 app:
   auth:
-    login-success-redirect-uri: http://todaybook.life/login/success
+    login-success-redirect-uri: https://today-book.github.io/today-book-front/login/success
 
 cors:
   allowed-origins:
-    - http://todaybook.life
+    - https://today-book.github.io
 
 eureka:
   instance:
